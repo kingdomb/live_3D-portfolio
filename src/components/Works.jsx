@@ -32,7 +32,11 @@ const ProjectCard = ({
     : null;
 
   return (
-    <motion.div variants={fadeIn('up', 'spring', index * 0.5, 0.75)}>
+    <motion.div
+      variants={fadeIn('up', 'spring', index * 0.5, 0.75)}
+      initial='hidden'
+      animate='show'
+    >
       <Tilt
         options={{
           max: 45,
@@ -101,16 +105,24 @@ const ProjectCard = ({
 };
 
 const Works = () => {
+  console.log('Projects Data:', projects);
   return (
     <>
-      <motion.div variants={textVariant()} className='max-w-3xl lg:mx-auto'>
+      <motion.div
+        variants={textVariant(0.2)}
+        initial='hidden'
+        animate='show'
+        className='max-w-3xl lg:mx-auto'
+      >
         <p className={`${styles.sectionSubText} `}>My work</p>
         <h2 className={`${styles.sectionHeadText}`}>Projects.</h2>
       </motion.div>
 
       <div className='w-full flex'>
         <motion.p
-          variants={fadeIn('', '', 0.1, 1)}
+          variants={fadeIn('up', 'tween', 0.1, 1)}
+          initial='hidden'
+          animate='show'
           className='mt-3 text-secondary text-[17px] max-w-3xl leading-[30px] lg:mx-auto'
         >
           The following projects highlight my skills and experience through
@@ -129,5 +141,4 @@ const Works = () => {
     </>
   );
 };
-
 export default SectionWrapper(Works, "projects");

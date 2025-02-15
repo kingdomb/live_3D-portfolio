@@ -336,7 +336,7 @@ const projects = [
   {
     name: "Angular GPA Calculator [RESPONSIVE]",
     description:
-      "My first Angular project, completed for school using the Angular 9 framework. The application stores class grades and calculates GPAs. It/’s showcased here to demonstrate my ability to work with unfamiliar technologies. [Use Student IDs (1007, 1008, 1009, 1010, 1011, or 1012) to login.]",
+      "My first Angular project, completed for school using the Angular 9 framework. The application stores class grades and calculates GPAs. It’s showcased here to demonstrate my ability to work with unfamiliar technologies. [Use Student IDs (1007, 1008, 1009, 1010, 1011, or 1012) to login.]",
     tags: [
       {
         name: "angular",
@@ -352,7 +352,7 @@ const projects = [
       },
     ],
     image: angularcalc,
-    source_code_link: "https://github.com/KingdomB/angular_grade_gpa.calc",
+    source_code_link: "https://github.com/kingdomb/angular_grade_gpa.calc./",
     demo_link: "https://kingdomb.github.io/angular_grade_gpa.calc./",
   },
   {

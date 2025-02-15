@@ -9,6 +9,7 @@ import {
   Tech,
   Works,
   StarsCanvas,
+  // ScrollToTop,
 } from './components';
 
 const App = () => {
@@ -30,9 +31,11 @@ const App = () => {
           <Contact />
           <StarsCanvas />
         </div>
+        {/* <ScrollToTop/> */}
       </div>
     </BrowserRouter>
   );
 };
 
 export default App;
+
