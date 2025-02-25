@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { styles } from '../styles';
 import { EarthCanvas } from './canvas';
@@ -59,14 +59,14 @@ const Contact = () => {
       } else {
         setResponseMessage({
           type: 'error',
-          text: 'The service supporting this form is temporarily down. Please contact me via LinkedIn: https://www.linkedin.com/in/kbernardmajor80/',
+          text: 'The service supporting this form is temporarily down. Please contact me via LinkedIn.',
         });
       }
     } catch (error) {
       console.error(error);
       setResponseMessage({
         type: 'error',
-        text: 'The service supporting this form is temporarily down. Please contact me via LinkedIn: https://www.linkedin.com/in/kbernardmajor80/',
+        text: 'The service supporting this form is temporarily down. Please contact me via LinkedIn.',
       });
     } finally {
       setLoading(false);
@@ -95,7 +95,26 @@ const Contact = () => {
             >
               ×
             </button>
-            {responseMessage.text}
+
+            {responseMessage.type === 'error' ? (
+              <>
+                <p>The service supporting this form is temporarily down.</p>
+                <p>Please contact me via LinkedIn:</p>
+                <button
+                  onClick={() =>
+                    window.open(
+                      'https://www.linkedin.com/in/kbernardmajor80/',
+                      '_blank'
+                    )
+                  }
+                  className='mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
+                >
+                  Visit LinkedIn
+                </button>
+              </>
+            ) : (
+              responseMessage.text
+            )}
           </div>
         )}
 
