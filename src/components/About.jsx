@@ -47,12 +47,19 @@ const About = () => {
         variants={fadeIn('', '', 0.1, 1)}
         className='mt-4 text-secondary text-[17px] max-w-3xl leading-[30px] lg:mx-auto'
       >
-        I'm a skilled software developer with experience in JavaScript, Azure,
-        WP, and expertise in frameworks like React/React Native, Node.js, and
-        Three.js. I’m a quick learner who will work closely with clients to
-        develop efficient, scalable, and user-friendly solutions tailored to
-        address real-world challenges. Let’s collaborate to turn your ideas into
-        reality!
+        I’m a skilled software developer with experience in JavaScript, Azure,
+        WordPress, and frameworks like React, React Native, Node.js, and
+        Three.js. Delivering high-performance mobile & web solutions starts with
+        selecting the right tools for each project—not just following trends.
+        Every decision is approached with careful consideration, whether
+        evaluating if a frontend framework is necessary or if a streamlined
+        static site would be more effective and cost-efficient. I focus on
+        optimizing page speed using SSR, CSR, ISR, or SSG while minimizing
+        deployment challenges by avoiding unnecessary dependencies. My
+        adaptability and problem-solving skills help organizations achieve an
+        optimal balance of performance, maintainability, and budget. Let’s
+        collaborate to turn your ideas into scalable, efficient, and
+        user-friendly solutions!
       </motion.p>
 
       <div className='mt-20 grid gap-10 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 place-items-center'>

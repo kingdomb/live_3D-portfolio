@@ -11,29 +11,46 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    // const handleScroll = () => {
+    //   const scrollTop = window.scrollY;
+
+    //   // Set the scroll background color
+    //   if (scrollTop > 100) {
+    //     setScrolled(true);
+    //   } else {
+    //     setScrolled(false);
+    //   }
+
+    //   // If at the top of the page, set active to "About"
+    //   if (scrollTop === 0) {
+    //     setActive('About');
+    //     return;
+    //   }
+
+    //   // Otherwise, check which section is in the viewport and update active link
+    //   navLinks.forEach((nav) => {
+    //     const section = document.getElementById(nav.id);
+    //     const rect = section.getBoundingClientRect();
+
+    //     if (rect.top <= 0 && rect.bottom >= 0) {
+    //       setActive(nav.title);
+    //     }
+    //   });
+    // };
     const handleScroll = () => {
       const scrollTop = window.scrollY;
 
       // Set the scroll background color
-      if (scrollTop > 100) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(scrollTop > 100);
 
-      // If at the top of the page, set active to "About"
-      if (scrollTop === 0) {
-        setActive('About');
-        return;
-      }
-
-      // Otherwise, check which section is in the viewport and update active link
+      // Remove early return
       navLinks.forEach((nav) => {
         const section = document.getElementById(nav.id);
-        const rect = section.getBoundingClientRect();
-
-        if (rect.top <= 0 && rect.bottom >= 0) {
-          setActive(nav.title);
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= 0 && rect.bottom >= 0) {
+            setActive(nav.title);
+          }
         }
       });
     };
