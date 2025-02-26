@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { styles } from '../styles';
 import { EarthCanvas } from './canvas';
@@ -14,7 +14,8 @@ const Contact = () => {
     message: false,
   });
   const [loading, setLoading] = useState(false);
-  const [responseMessage, setResponseMessage] = useState(null);
+  const [attemptCount, setAttemptCount] = useState(0);
+  const [flash, setFlash] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,44 +34,47 @@ const Contact = () => {
     return !Object.values(newErrors).includes(true);
   };
 
+  const triggerFlash = () => {
+    let flashes = 0;
+    const interval = setInterval(() => {
+      setFlash((prev) => !prev);
+      flashes++;
+      if (flashes === 6) {
+        clearInterval(interval);
+        setFlash(false);
+      }
+    }, 300);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
+
     try {
-      const response = await fetch(
-        'https://portfolio-email-services-g4v6xgxhd-kbs-projects-61b71ab2.vercel.app/api/contact',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from_name: form.name,
-            from_email: form.email,
-            message: form.message,
-          }),
-        }
-      );
+      const response = await fetch('http://localhost:8080/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const result = await response.json();
+
       if (response.ok) {
-        setResponseMessage({
-          type: 'success',
-          text: 'Thank you. I will get back to you as soon as possible.',
-        });
         setForm({ name: '', email: '', message: '' });
-      } else {
-        setResponseMessage({
-          type: 'error',
-          text: 'The service supporting this form is temporarily down. Please contact me via LinkedIn.',
-        });
+        setAttemptCount(0);
+      } else if (
+        result.error === 'too_many_attempts' ||
+        result.silentBlock ||
+        response.status === 403
+      ) {
+        setForm({ name: '', email: '', message: '' });
+        triggerFlash();
       }
     } catch (error) {
       console.error(error);
-      setResponseMessage({
-        type: 'error',
-        text: 'The service supporting this form is temporarily down. Please contact me via LinkedIn.',
-      });
     } finally {
       setLoading(false);
-      setTimeout(() => setResponseMessage(null), 12000);
     }
   };
 
@@ -78,45 +82,12 @@ const Contact = () => {
     <div className='xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden'>
       <motion.div
         variants={slideIn('left', 'tween', 0.2, 1)}
-        className='flex-[0.75] bg-black-100 p-8 rounded-2xl'
+        className={`flex-[0.75] bg-black-100 p-8 rounded-2xl ${
+          flash ? 'bg-red-500' : ''
+        }`}
       >
         <p className={styles.sectionSubText}>Get in touch</p>
         <h3 className={styles.sectionHeadText}>Contact.</h3>
-
-        {responseMessage && (
-          <div
-            className={`relative mt-4 p-4 rounded-lg text-white text-center ${
-              responseMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          >
-            <button
-              onClick={() => setResponseMessage(null)}
-              className='absolute top-2 right-2 text-white text-lg font-bold'
-            >
-              ×
-            </button>
-
-            {responseMessage.type === 'error' ? (
-              <>
-                <p>The service supporting this form is temporarily down.</p>
-                <p>Please contact me via LinkedIn:</p>
-                <button
-                  onClick={() =>
-                    window.open(
-                      'https://www.linkedin.com/in/kbernardmajor80/',
-                      '_blank'
-                    )
-                  }
-                  className='mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
-                >
-                  Visit LinkedIn
-                </button>
-              </>
-            ) : (
-              responseMessage.text
-            )}
-          </div>
-        )}
 
         <form
           ref={formRef}
