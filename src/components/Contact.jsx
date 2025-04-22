@@ -14,8 +14,23 @@ const Contact = () => {
     message: false,
   });
   const [loading, setLoading] = useState(false);
-  const [attemptCount, setAttemptCount] = useState(0);
   const [flash, setFlash] = useState(false);
+  const [responseMessage, setResponseMessage] = useState(null);
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+  useEffect(() => {
+    if (!siteKey) {
+      console.error('reCAPTCHA site key is missing.');
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => console.log('reCAPTCHA script loaded');
+    document.body.appendChild(script);
+  }, [siteKey]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,50 +49,66 @@ const Contact = () => {
     return !Object.values(newErrors).includes(true);
   };
 
-  const triggerFlash = () => {
-    let flashes = 0;
-    const interval = setInterval(() => {
-      setFlash((prev) => !prev);
-      flashes++;
-      if (flashes === 6) {
-        clearInterval(interval);
-        setFlash(false);
-      }
-    }, 300);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
 
     try {
+      const captchaResponse = document.querySelector(
+        '.g-recaptcha-response'
+      ).value;
+      if (!captchaResponse) {
+        alert('Please complete the reCAPTCHA.');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('http://localhost:8080/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          'g-recaptcha-response': captchaResponse,
+        }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
+        setResponseMessage({
+          type: 'success',
+          text: 'Thank you. I will get back to you as soon as possible.',
+        });
+
         setForm({ name: '', email: '', message: '' });
-        setAttemptCount(0);
-      } else if (
-        result.error === 'too_many_attempts' ||
-        result.silentBlock ||
-        response.status === 403
-      ) {
-        setForm({ name: '', email: '', message: '' });
-        triggerFlash();
+
+        // Reset reCAPTCHA
+        if (window.grecaptcha) {
+          window.grecaptcha.reset();
+        }
+
+        setTimeout(() => setResponseMessage(null), 10000);
+      } else if (result.error === 'too_many_attempts') {
+        setResponseMessage({
+          type: 'error',
+          text: 'You have exceeded the allowed submission attempts. Please try again later.',
+        });
+      } else if (result.vagueError) {
+        setFlash(true);
+        setTimeout(() => setFlash(false), 500);
       }
     } catch (error) {
-      console.error(error);
+      console.error('An error occurred:', error);
+      setResponseMessage({
+        type: 'error',
+        text: 'Something went wrong. Please try again later.',
+      });
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className='xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden'>
       <motion.div
@@ -88,6 +119,34 @@ const Contact = () => {
       >
         <p className={styles.sectionSubText}>Get in touch</p>
         <h3 className={styles.sectionHeadText}>Contact.</h3>
+
+        {responseMessage && (
+          <div
+            className={`p-4 rounded-lg mb-4 ${
+              responseMessage.type === 'success'
+                ? 'bg-green-500 text-white'
+                : 'bg-red-500 text-white'
+            }`}
+          >
+            {responseMessage && (
+              <div
+                className={`relative p-4 rounded-lg mb-4 ${
+                  responseMessage.type === 'success'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-red-500 text-white'
+                }`}
+              >
+                {responseMessage.text}
+                <button
+                  className='absolute top-1 right-1 text-white font-bold'
+                  onClick={() => setResponseMessage(null)}
+                >
+                  X
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <form
           ref={formRef}
@@ -108,6 +167,7 @@ const Contact = () => {
               <span className='text-red-500 text-xs mt-1'>* Required</span>
             )}
           </label>
+
           <label className='flex flex-col'>
             <span className='text-white font-medium mb-4'>Email</span>
             <input
@@ -122,6 +182,7 @@ const Contact = () => {
               <span className='text-red-500 text-xs mt-1'>* Required</span>
             )}
           </label>
+
           <label className='flex flex-col'>
             <span className='text-white font-medium mb-4'>Message</span>
             <textarea
@@ -136,6 +197,15 @@ const Contact = () => {
               <span className='text-red-500 text-xs mt-1'>* Required</span>
             )}
           </label>
+
+          <div className='flex justify-center'>
+            <div
+              className='g-recaptcha'
+              data-sitekey={siteKey}
+              data-action='submit'
+            ></div>
+          </div>
+
           <button
             type='submit'
             className='bg-tertiary py-3 px-8 self-center rounded-xl outline-none w-fit text-white font-bold shadow-md shadow-primary'

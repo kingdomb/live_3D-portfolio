@@ -105,7 +105,6 @@ const ProjectCard = ({
 };
 
 const Works = () => {
-  console.log('Projects Data:', projects);
   return (
     <>
       <motion.div
