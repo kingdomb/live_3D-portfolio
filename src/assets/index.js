@@ -34,6 +34,7 @@ import gym1 from './gym1.png';
 import ron from './ron.png';
 import derrick from './derrick.png';
 import eduard from './eduard.png';
+import csrfrontend from './csrfrontend.png';
 
 export {
   logo,
@@ -69,4 +70,5 @@ export {
   ron,
   derrick,
   eduard,
+  csrfrontend,
 };

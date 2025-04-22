@@ -28,7 +28,8 @@ import {
   ron,
   derrick,
   eduard,
-} from "../assets";
+  csrfrontend,
+} from '../assets';
 
 export const navLinks = [
   {
@@ -206,176 +207,203 @@ const testimonials = [
 
 const projects = [
   {
-    name: "eCommerce Front-End [RESPONSIVE]",
+    name: 'Carwash CSR Portal Front-End [RESPONSIVE]',
     description:
-      "This is a semi-functional, eCommerce front-end(only) site. There is a good chance this will all get placed into React components, and I would also improve the design. The thought was giving this partial app some exposure, might be a good idea.",
+      'This is a fully-functional, Customer Service Rep. Portal front-end(only) site. It allows CSRs to efficiently manage user accounts, view subscription details, and handle support interactions. The design emphasizes clarity and speed, with sortable tables, real-time form validation, and smooth UI transitions. Developed to integrate seamlessly with a RESTful microservice backend, the portal showcases strong focus on usability, component reusability, and frontend performance.',
     tags: [
       {
-        name: "html",
-        color: "blue-text-gradient",
+        name: 'react',
+        color: 'blue-text-gradient',
       },
       {
-        name: "js",
-        color: "green-text-gradient",
+        name: 'vite',
+        color: 'blue-text-gradient',
       },
       {
-        name: "css",
-        color: "pink-text-gradient",
+        name: 'js',
+        color: 'green-text-gradient',
       },
       {
-        name: "cssanimations",
-        color: "pink-text-gradient",
+        name: 'tailwindcss',
+        color: 'pink-text-gradient',
+      },
+    ],
+    image: csrfrontend,
+    source_code_link: 'https://github.com/kingdomb/csr-portal-frontend/',
+    demo_link: 'https://csr-frontend.vercel.app/',
+  },
+  {
+    name: 'eCommerce Front-End [RESPONSIVE]',
+    description:
+      'This is a semi-functional, eCommerce front-end(only) site. There is a good chance this will all get placed into React components, and I would also improve the design. The thought was giving this partial app some exposure, might be a good idea.',
+    tags: [
+      {
+        name: 'html',
+        color: 'blue-text-gradient',
+      },
+      {
+        name: 'js',
+        color: 'green-text-gradient',
+      },
+      {
+        name: 'css',
+        color: 'pink-text-gradient',
+      },
+      {
+        name: 'cssanimations',
+        color: 'pink-text-gradient',
       },
     ],
     image: commerce1,
-    source_code_link: "https://github.com/KingdomB/firestore-2020-ecommerce",
-    demo_link: "https://kingdomb.github.io/firestore-2020-ecommerce/",
+    source_code_link: 'https://github.com/KingdomB/firestore-2020-ecommerce',
+    demo_link: 'https://kingdomb.github.io/firestore-2020-ecommerce/',
   },
   {
-    name: "NLP Course Recommender [VIDEO DEMO]",
+    name: 'NLP Course Recommender [VIDEO DEMO]',
     description:
-      "My app is a phase 2 poc for creating a natural language processor that recommends career-related classes to college students. It does this by analyzing their current course grades to identify learning gaps and strengths. Based on this analysis, the app generates recommended courses using similarity scores derived from various vectorized data points. [NOTE: The demo is in video format to protect the proprietary nature of the proposal.]",
+      'My app is a phase 2 poc for creating a natural language processor that recommends career-related classes to college students. It does this by analyzing their current course grades to identify learning gaps and strengths. Based on this analysis, the app generates recommended courses using similarity scores derived from various vectorized data points. [NOTE: The demo is in video format to protect the proprietary nature of the proposal.]',
     tags: [
       {
-        name: "react",
-        color: "blue-text-gradient",
+        name: 'react',
+        color: 'blue-text-gradient',
       },
       {
-        name: "redux",
-        color: "blue-text-gradient",
+        name: 'redux',
+        color: 'blue-text-gradient',
       },
       {
-        name: "js",
-        color: "green-text-gradient",
+        name: 'js',
+        color: 'green-text-gradient',
       },
       {
-        name: "nodejs",
-        color: "brown-text-gradient",
+        name: 'nodejs',
+        color: 'brown-text-gradient',
       },
       {
-        name: "tailwindcss",
-        color: "pink-text-gradient",
+        name: 'tailwindcss',
+        color: 'pink-text-gradient',
       },
       {
-        name: "firebase",
-        color: "red-text-gradient",
+        name: 'firebase',
+        color: 'red-text-gradient',
       },
       {
-        name: "nlp",
-        color: "yellow-text-gradient",
+        name: 'nlp',
+        color: 'yellow-text-gradient',
       },
       {
-        name: "figma",
-        color: "orange-text-gradient",
+        name: 'figma',
+        color: 'orange-text-gradient',
       },
     ],
     image: nlpcourses,
-    source_code_link: "https://github.com/kingdomb/ed-nlp-test_rebuild",
-    demo_link: "https://kingdomb.github.io/live_portfolio-v2/assets/files/nlp-demo-video.mp4",
+    source_code_link: 'https://github.com/kingdomb/ed-nlp-test_rebuild',
+    demo_link:
+      'https://kingdomb.github.io/live_portfolio-v2/assets/files/nlp-demo-video.mp4',
   },
   {
-    name: "Home Remodeling Website [RESPONSIVE]",
+    name: 'Home Remodeling Website [RESPONSIVE]',
     description:
       "I built, deployed, and managed Edward Jr. Construction LLC's site under contract through my own media company, MMG LLC.",
     tags: [
-     {
-        name: "html",
-        color: "blue-text-gradient",
+      {
+        name: 'html',
+        color: 'blue-text-gradient',
       },
       {
-        name: "jquery",
-        color: "green-text-gradient",
+        name: 'jquery',
+        color: 'green-text-gradient',
       },
       {
-        name: "php",
-        color: "green-text-gradient",
+        name: 'php',
+        color: 'green-text-gradient',
       },
       {
-        name: "css",
-        color: "pink-text-gradient",
+        name: 'css',
+        color: 'pink-text-gradient',
       },
       {
-        name: "bootstrap",
-        color: "pink-text-gradient",
+        name: 'bootstrap',
+        color: 'pink-text-gradient',
       },
       {
-        name: "mailchimp",
-        color: "orange-text-gradient",
+        name: 'mailchimp',
+        color: 'orange-text-gradient',
       },
     ],
     image: edjrconstruction,
-    source_code_link: "https://github.com/kingdomb/eduardjrconstruction",
-    demo_link: "https://kingdomb.github.io/eduardjrconstruction/",
+    source_code_link: 'https://github.com/kingdomb/eduardjrconstruction',
+    demo_link: 'https://kingdomb.github.io/eduardjrconstruction/',
   },
   {
-    name: "Lambo Details View [NON-RESPONSIVE]",
+    name: 'Lambo Details View [NON-RESPONSIVE]',
     description:
-      "A non-functional, non-responsive, more details page that I created(from a mockup) to tryout an animation idea that displays a car image rolling into view.",
+      'A non-functional, non-responsive, more details page that I created(from a mockup) to tryout an animation idea that displays a car image rolling into view.',
     tags: [
       {
-        name: "html",
-        color: "blue-text-gradient",
+        name: 'html',
+        color: 'blue-text-gradient',
       },
       {
-        name: "js",
-        color: "green-text-gradient",
+        name: 'js',
+        color: 'green-text-gradient',
       },
       {
-        name: "css",
-        color: "pink-text-gradient",
+        name: 'css',
+        color: 'pink-text-gradient',
       },
       {
-        name: "cssanimations",
-        color: "pink-text-gradient",
+        name: 'cssanimations',
+        color: 'pink-text-gradient',
       },
     ],
     image: lambo,
-    source_code_link: "https://github.com/KingdomB/lambo-animation",
-    demo_link: "https://kingdomb.github.io/lambo-animation/",
+    source_code_link: 'https://github.com/KingdomB/lambo-animation',
+    demo_link: 'https://kingdomb.github.io/lambo-animation/',
   },
   {
-    name: "Angular GPA Calculator [RESPONSIVE]",
+    name: 'Angular GPA Calculator [RESPONSIVE]',
     description:
-      "My first Angular project, completed for school using the Angular 9 framework. The application stores class grades and calculates GPAs. It’s showcased here to demonstrate my ability to work with unfamiliar technologies. [Use Student IDs (1007, 1008, 1009, 1010, 1011, or 1012) to login.]",
+      'My first Angular project, completed for school using the Angular 9 framework. The application stores class grades and calculates GPAs. It’s showcased here to demonstrate my ability to work with unfamiliar technologies. [Use Student IDs (1007, 1008, 1009, 1010, 1011, or 1012) to login.]',
     tags: [
       {
-        name: "angular",
-        color: "blue-text-gradient",
+        name: 'angular',
+        color: 'blue-text-gradient',
       },
       {
-        name: "css",
-        color: "pink-text-gradient",
+        name: 'css',
+        color: 'pink-text-gradient',
       },
       {
-        name: "material",
-        color: "pink-text-gradient",
+        name: 'material',
+        color: 'pink-text-gradient',
       },
     ],
     image: angularcalc,
-    source_code_link: "https://github.com/kingdomb/angular_grade_gpa.calc./",
-    demo_link: "https://kingdomb.github.io/angular_grade_gpa.calc./",
+    source_code_link: 'https://github.com/kingdomb/angular_grade_gpa.calc./',
+    demo_link: 'https://kingdomb.github.io/angular_grade_gpa.calc./',
   },
   {
-    name: "Gym Landing Site [NON-RESPONSIVE]",
+    name: 'Gym Landing Site [NON-RESPONSIVE]',
     description:
       "I had fun building this non-functional landing page, and it's my favorite so far. I'm not particularly impressed by my icons, but that was the designer's choice. Enjoy!",
     tags: [
       {
-        name: "html",
-        color: "blue-text-gradient",
+        name: 'html',
+        color: 'blue-text-gradient',
       },
       {
-        name: "css",
-        color: "pink-text-gradient",
+        name: 'css',
+        color: 'pink-text-gradient',
       },
       {
-        name: "bootstrap",
-        color: "pink-text-gradient",
+        name: 'bootstrap',
+        color: 'pink-text-gradient',
       },
     ],
     image: gym1,
-    source_code_link: "https://github.com/KingdomB/gym-landing",
-    demo_link: "https://kingdomb.github.io/gym-landing/",
+    source_code_link: 'https://github.com/KingdomB/gym-landing',
+    demo_link: 'https://kingdomb.github.io/gym-landing/',
   },
 ];
 
