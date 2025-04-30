@@ -21,23 +21,14 @@ const Contact = () => {
   const [responseMessage, setResponseMessage] = useState(null);
   const [recaptchaToken, setRecaptchaToken] = useState('');
 
-  // ← hard-coded production values:
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  // ─────── DEBUG: confirm values in the browser ───────
-  // console.log('HARDCODED_SITE_KEY:', siteKey);
-  // console.log('VITE_API_URL:', apiUrl);
-  // console.log('import.meta.env.MODE:', import.meta.env.MODE);
-  // console.log('import.meta.env:', import.meta.env);
-
-  // ─── Load Enterprise script and render v2 checkbox ───
   useEffect(() => {
     if (!siteKey) {
       console.error('reCAPTCHA site key is missing.');
       return;
     }
-
     const script = document.createElement('script');
     script.src = 'https://www.google.com/recaptcha/enterprise.js';
     script.async = true;
@@ -49,7 +40,6 @@ const Contact = () => {
           {
             sitekey: siteKey,
             callback: (token) => {
-              // console.log('Enterprise checkbox token:', token);
               setRecaptchaToken(token);
             },
           }
@@ -89,13 +79,17 @@ const Contact = () => {
 
     setLoading(true);
     try {
+      // build URL-encoded payload to avoid CORS preflight
+      const params = new URLSearchParams();
+      params.append('name', form.name);
+      params.append('email', form.email);
+      params.append('message', form.message);
+      params.append('g-recaptcha-response', recaptchaToken);
+
       const res = await fetch(`${apiUrl}/feedback`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          'g-recaptcha-response': recaptchaToken,
-        }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
       });
       const result = await res.json();
 
@@ -224,6 +218,7 @@ const Contact = () => {
           </button>
         </form>
       </motion.div>
+
       <motion.div
         variants={slideIn('right', 'tween', 0.2, 1)}
         className='xl:flex-1 xl:h-auto md:h-[550px] h-[350px]'
