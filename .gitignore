@@ -22,10 +22,13 @@ dist-ssr
 *.sw?
 
 .env
-.env.production
 .env.development
+.env.production
 
 # vscode
 .vscode
 *.txt
 node_modules
+
+# build output
+dist/
