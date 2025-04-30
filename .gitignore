@@ -30,5 +30,5 @@ dist-ssr
 *.txt
 node_modules
 
-# build output
+#build
 dist/
