@@ -1,3 +1,4 @@
+// src/components/Contact.jsx
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { styles } from '../styles';
@@ -7,6 +8,8 @@ import { slideIn } from '../utils/motion';
 
 const Contact = () => {
   const formRef = useRef();
+  const widgetIdRef = useRef(null);
+
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState({
     name: false,
@@ -16,8 +19,19 @@ const Contact = () => {
   const [loading, setLoading] = useState(false);
   const [flash, setFlash] = useState(false);
   const [responseMessage, setResponseMessage] = useState(null);
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const [recaptchaToken, setRecaptchaToken] = useState('');
 
+  // ← hard-coded production values:
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  // ─────── DEBUG: confirm values in the browser ───────
+  // console.log('HARDCODED_SITE_KEY:', siteKey);
+  // console.log('VITE_API_URL:', apiUrl);
+  // console.log('import.meta.env.MODE:', import.meta.env.MODE);
+  // console.log('import.meta.env:', import.meta.env);
+
+  // ─── Load Enterprise script and render v2 checkbox ───
   useEffect(() => {
     if (!siteKey) {
       console.error('reCAPTCHA site key is missing.');
@@ -25,16 +39,32 @@ const Contact = () => {
     }
 
     const script = document.createElement('script');
-    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.src = 'https://www.google.com/recaptcha/enterprise.js';
     script.async = true;
     script.defer = true;
-    script.onload = () => console.log('reCAPTCHA script loaded');
+    script.onload = () => {
+      window.grecaptcha.enterprise.ready(() => {
+        widgetIdRef.current = window.grecaptcha.enterprise.render(
+          'recaptcha-container',
+          {
+            sitekey: siteKey,
+            callback: (token) => {
+              // console.log('Enterprise checkbox token:', token);
+              setRecaptchaToken(token);
+            },
+          }
+        );
+      });
+    };
     document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
   }, [siteKey]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
   const validateForm = () => {
@@ -52,63 +82,52 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    if (!recaptchaToken) {
+      alert('Please complete the reCAPTCHA.');
+      return;
+    }
+
     setLoading(true);
-
     try {
-      const captchaResponse = document.querySelector(
-        '.g-recaptcha-response'
-      ).value;
-      if (!captchaResponse) {
-        alert('Please complete the reCAPTCHA.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/feedback', {
+      const res = await fetch(`${apiUrl}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          'g-recaptcha-response': captchaResponse,
+          'g-recaptcha-response': recaptchaToken,
         }),
       });
+      const result = await res.json();
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (res.ok) {
         setResponseMessage({
           type: 'success',
-          text: 'Thank you. I will get back to you as soon as possible.',
+          text: 'Thank you! I’ll be in touch soon.',
         });
-
         setForm({ name: '', email: '', message: '' });
-
-        // Reset reCAPTCHA
-        if (window.grecaptcha) {
-          window.grecaptcha.reset();
-        }
-
-        setTimeout(() => setResponseMessage(null), 10000);
+        window.grecaptcha.enterprise.reset(widgetIdRef.current);
+        setRecaptchaToken('');
       } else if (result.error === 'too_many_attempts') {
         setResponseMessage({
           type: 'error',
-          text: 'You have exceeded the allowed submission attempts. Please try again later.',
+          text: 'Too many attempts—please try later.',
         });
       } else if (result.vagueError) {
         setFlash(true);
         setTimeout(() => setFlash(false), 500);
       }
-    } catch (error) {
-      console.error('An error occurred:', error);
+    } catch (err) {
+      console.error('Submission error:', err);
       setResponseMessage({
         type: 'error',
-        text: 'Something went wrong. Please try again later.',
+        text: 'Something went wrong—please try again later.',
       });
     } finally {
       setLoading(false);
+      setTimeout(() => setResponseMessage(null), 10000);
     }
   };
-  
+
   return (
     <div className='xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden'>
       <motion.div
@@ -123,28 +142,18 @@ const Contact = () => {
         {responseMessage && (
           <div
             className={`p-4 rounded-lg mb-4 ${
-              responseMessage.type === 'success'
-                ? 'bg-green-500 text-white'
-                : 'bg-red-500 text-white'
-            }`}
+              responseMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`}
           >
-            {responseMessage && (
-              <div
-                className={`relative p-4 rounded-lg mb-4 ${
-                  responseMessage.type === 'success'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-red-500 text-white'
-                }`}
+            <div className='relative p-4 rounded-lg mb-4'>
+              {responseMessage.text}
+              <button
+                className='absolute top-1 right-1 text-white font-bold'
+                onClick={() => setResponseMessage(null)}
               >
-                {responseMessage.text}
-                <button
-                  className='absolute top-1 right-1 text-white font-bold'
-                  onClick={() => setResponseMessage(null)}
-                >
-                  X
-                </button>
-              </div>
-            )}
+                X
+              </button>
+            </div>
           </div>
         )}
 
@@ -153,6 +162,7 @@ const Contact = () => {
           onSubmit={handleSubmit}
           className='mt-12 flex flex-col gap-8'
         >
+          {/* Name */}
           <label className='flex flex-col'>
             <span className='text-white font-medium mb-4'>Name</span>
             <input
@@ -168,6 +178,7 @@ const Contact = () => {
             )}
           </label>
 
+          {/* Email */}
           <label className='flex flex-col'>
             <span className='text-white font-medium mb-4'>Email</span>
             <input
@@ -183,6 +194,7 @@ const Contact = () => {
             )}
           </label>
 
+          {/* Message */}
           <label className='flex flex-col'>
             <span className='text-white font-medium mb-4'>Message</span>
             <textarea
@@ -198,17 +210,15 @@ const Contact = () => {
             )}
           </label>
 
+          {/* Enterprise checkbox */}
           <div className='flex justify-center'>
-            <div
-              className='g-recaptcha'
-              data-sitekey={siteKey}
-              data-action='submit'
-            ></div>
+            <div id='recaptcha-container'></div>
           </div>
 
           <button
             type='submit'
             className='bg-tertiary py-3 px-8 self-center rounded-xl outline-none w-fit text-white font-bold shadow-md shadow-primary'
+            disabled={loading}
           >
             {loading ? 'Sending...' : 'Send'}
           </button>
