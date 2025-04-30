@@ -88,6 +88,7 @@ const Contact = () => {
 
       const res = await fetch(`${apiUrl}/feedback`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
       });
