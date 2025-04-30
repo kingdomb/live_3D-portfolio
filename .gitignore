@@ -29,3 +29,6 @@ dist-ssr
 .vscode
 *.txt
 node_modules
+
+#build
+dist/
