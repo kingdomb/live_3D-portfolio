@@ -182,6 +182,7 @@ const Contact = () => {
             <input
               type='text'
               name='name'
+              autoComplete='name'
               value={form.name}
               onChange={handleChange}
               placeholder='What do you like to be called?'
@@ -198,6 +199,7 @@ const Contact = () => {
             <input
               type='email'
               name='email'
+              autoComplete='email'
               value={form.email}
               onChange={handleChange}
               placeholder='Which email do you check the most?'
