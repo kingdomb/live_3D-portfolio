@@ -35,7 +35,7 @@ const Contact = () => {
     script.defer = true;
     script.onload = () => {
       window.grecaptcha.enterprise.ready(() => {
-       widgetIdRef.current = window.grecaptcha.enterprise.render(
+        widgetIdRef.current = window.grecaptcha.enterprise.render(
           'recaptcha-container',
           {
             sitekey: siteKey,
@@ -44,10 +44,6 @@ const Contact = () => {
             },
           }
         );
-        // right after render, mark the container inert
-        document
-          .getElementById('recaptcha-container')
-          .setAttribute('inert', '');
       });
     };
     document.body.appendChild(script);
@@ -227,36 +223,6 @@ const Contact = () => {
               <span className='text-red-500 text-xs mt-1'>* Required</span>
             )}
           </label>
-
-          {/* Preview buttons (dev-only) */}
-          {/* {import.meta.env.DEV && (
-            <div className='flex gap-2'>
-              <button
-                type='button'
-                className='bg-secondary/50 px-4 py-2 rounded-md text-white'
-                onClick={() =>
-                  setResponseMessage({
-                    type: 'success',
-                    text: form.message || 'Sample preview text',
-                  })
-                }
-              >
-                Preview Success
-              </button>
-              <button
-                type='button'
-                className='bg-secondary/50 px-4 py-2 rounded-md text-red-400'
-                onClick={() =>
-                  setResponseMessage({
-                    type: 'error',
-                    text: form.message || 'Sample error text',
-                  })
-                }
-              >
-                Preview Error
-              </button>
-            </div>
-          )} */}
 
           {/* Enterprise checkbox */}
           <div className='flex justify-center'>
