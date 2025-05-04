@@ -136,19 +136,25 @@ const Contact = () => {
 
         {responseMessage && (
           <div
-            className={`p-4 rounded-lg mb-4 ${
-              responseMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } text-white`}
+            className={`
+              relative
+              mb-4
+              rounded-lg
+              px-4 py-2
+              ${
+                responseMessage.type === 'success'
+                  ? 'bg-tertiary text-white'
+                  : 'bg-tertiary/30 text-red-400'
+              }
+            `}
           >
-            <div className='relative p-4 rounded-lg mb-4'>
-              {responseMessage.text}
-              <button
-                className='absolute top-1 right-1 text-white font-bold'
-                onClick={() => setResponseMessage(null)}
-              >
-                X
-              </button>
-            </div>
+            <p className='m-0'>{responseMessage.text}</p>
+            <button
+              className='absolute top-1 right-2 text-sm font-bold'
+              onClick={() => setResponseMessage(null)}
+            >
+              ×
+            </button>
           </div>
         )}
 
@@ -204,6 +210,36 @@ const Contact = () => {
               <span className='text-red-500 text-xs mt-1'>* Required</span>
             )}
           </label>
+
+          {/* Preview buttons (dev-only) */}
+          {/* {import.meta.env.DEV && (
+            <div className='flex gap-2'>
+              <button
+                type='button'
+                className='bg-secondary/50 px-4 py-2 rounded-md text-white'
+                onClick={() =>
+                  setResponseMessage({
+                    type: 'success',
+                    text: form.message || 'Sample preview text',
+                  })
+                }
+              >
+                Preview Success
+              </button>
+              <button
+                type='button'
+                className='bg-secondary/50 px-4 py-2 rounded-md text-red-400'
+                onClick={() =>
+                  setResponseMessage({
+                    type: 'error',
+                    text: form.message || 'Sample error text',
+                  })
+                }
+              >
+                Preview Error
+              </button>
+            </div>
+          )} */}
 
           {/* Enterprise checkbox */}
           <div className='flex justify-center'>
