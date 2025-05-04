@@ -35,7 +35,7 @@ const Contact = () => {
     script.defer = true;
     script.onload = () => {
       window.grecaptcha.enterprise.ready(() => {
-        widgetIdRef.current = window.grecaptcha.enterprise.render(
+       widgetIdRef.current = window.grecaptcha.enterprise.render(
           'recaptcha-container',
           {
             sitekey: siteKey,
@@ -44,6 +44,10 @@ const Contact = () => {
             },
           }
         );
+        // right after render, mark the container inert
+        document
+          .getElementById('recaptcha-container')
+          .setAttribute('inert', '');
       });
     };
     document.body.appendChild(script);
@@ -51,6 +55,19 @@ const Contact = () => {
       document.body.removeChild(script);
     };
   }, [siteKey]);
+
+  useEffect(() => {
+    const obs = new MutationObserver((mutations) => {
+      mutations.forEach((m) => {
+        const el = m.target;
+        if (el.id === 'rc-imageselect-target' && el.hasAttribute('aria-hidden')) {
+          el.removeAttribute('aria-hidden');
+        }
+      });
+    });
+    obs.observe(document.body, { subtree: true, attributes: true });
+    return () => obs.disconnect();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
