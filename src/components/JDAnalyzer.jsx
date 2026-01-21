@@ -41,10 +41,10 @@ export default function JDAnalyzer() {
         <h2 className='text-3xl font-bold text-white mb-2'>
           Honest Fit Assessment 🎯
         </h2>
-        <p className='text-gray-400'>
+        <p className='text-gray-400 mt-2 text-secondary text-[17px] max-w-3xl leading-[30px]'>
           Paste a job description below. My AI will honestly tell you if I'm a
-          good fit, including why you{' '}
-          <span className='text-amber-500 font-bold'>shouldn't</span> hire me.
+          good fit, including{' '}
+          <span className='text-amber-500 font-bold'>my potential gaps</span>.
         </p>
       </div>
 
