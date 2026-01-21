@@ -9,6 +9,9 @@ import Feedbacks from "./Feedbacks";
 import Contact from "./Contact";
 import CanvasLoader from "./Loader";
 // import ScrollToTop from './ScrollToTop.jsx';
+import Admin from './Admin.jsx'
+import JDAnalyzer from './JDAnalyzer.jsx'
+import ChatInterface from './ChatInterface.jsx'
 
 
 export {
@@ -26,4 +29,7 @@ export {
   ComputersCanvas, 
   StarsCanvas,
   // ScrollToTop
+  Admin,
+  JDAnalyzer,
+  ChatInterface
 };

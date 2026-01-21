@@ -56,7 +56,7 @@ export const navLinks = [
 
 const services = [
   {
-    title: "Web Developer",
+    title: "AI Engineer",
     icon: web,
   },
   {
@@ -68,7 +68,7 @@ const services = [
     icon: backend,
   },
   {
-    title: "Aspiring Cloud Engineer",
+    title: "Entrepreneur & Consultant",
     icon: cloud,
   },
 ];
@@ -130,50 +130,50 @@ const technologies = [
 
 const experiences = [
   {
-    title: "React Native Developer",
-    company_name: "Saia LTL Freight",
-    icon: saia,
-    iconBg: "#ffffff",
-    date: "Nov 2020 - Mar 2023",
+    title: 'Freelance Full-Stack Engineer / AI Architect',
+    company_name: 'Major Media Group LLC',
+    icon: freelance, // Ensure you have this import
+    iconBg: '#ff7200', // You might want to update this color if needed
+    date: 'Jan 2020 - Present',
     points: [
-      "Developed mobile app code changes for 5,000 drivers, significantly improving functionality and user satisfaction.",
-      "Co-developed Okta SSO mobile app with React Native, enhancing security and reducing login times.",
-      "Led story grooming, backlog prioritization, and sprint planning with Agile teams, streamlining project delivery.",
-      "Participating in code reviews and providing constructive feedback to other developers.",
-      "Directed QA, UAT, and pre-release testing, minimizing post-launch defects and ensuring high-quality releases.",
-      "Coded business reqs into REST/SOAP APIs, optimizing data exchange and system integration for enhanced performance.",
-      "Designed and led the migration of on-prem SOAP to a REST API system infrastructure on Azure PaaS.",
-      "Built and migrated the linkex.us site to Azure PaaS using Angular, ensuring a seamless user experience.",
+      'Architected a resilience-first multi-agent system using Docker, Node.js, and Redis, implementing an asynchronous event-driven architecture.',
+      "Engineered a 'Shadow Mode' sandbox environment, allowing new AI models (Llama 3, Gemini 2.0) to run in parallel with live traffic for safe A/B testing.",
+      'Built Secure Retrieval-Augmented Generation (RAG) memory systems using PostgreSQL and pgvector, enforcing strict multi-tenant data isolation.',
+      'Developed a custom Chaos Engine middleware to inject artificial latency and faults, validating system resilience and backpressure management.',
+      'Delivered scalable full-stack web solutions, translating business needs into secure payment integrations and custom CMS platforms.',
+      'Led end-to-end delivery—from design and branding to hosting, domain setup, and digital marketing execution.',
     ],
   },
   {
-    title: "Dental Lab Technician/ & Product Manager",
-    company_name: "360 Imaging LLC",
-    icon: threesixty,
-    iconBg: "#ff0000",
-    date: "Jan 2016 - Nov 2019",
+    title: 'React Native Engineer / Software Release Manager',
+    company_name: 'Saia LTL Freight',
+    icon: saia, // Ensure you have this import
+    iconBg: '#ffffff',
+    date: 'Nov 2020 - Mar 2023',
     points: [
-      "Streamlined dental lab processes, reducing turnaround times by 20% through optimized workflows and resource allocation.",
-      "Led a cross-functional team to launch Anatomical GuideTM, cutting production costs by 15% using CAD/CAM technologies.",
-      "Improved quality control for patient-specific implants, reducing errors by 30% and increasing patient satisfaction.",
-      "Developed a vendor on-boarding tool, cutting annual costs by 25% and improving communication across teams.",
-      "Enhanced lab efficiency by 25% through workflow optimization, maintaining high quality in prosthetic fabrication.",
-      "Contributed to the development of innovative dental products, ensuring regulatory compliance and industry recognition.",
+      'Directed end-to-end Release Management, ensuring risk mitigation, milestone delivery, and cross-functional coordination across enterprise systems.',
+      'Co-developed a React Native mobile app with Okta SSO for 5,000+ enterprise users, strengthening authentication and platform security.',
+      'Managed the full software lifecycle for Zebra (Android) handheld freight scanners, including feature development, debugging, and global deployment.',
+      'Engineered integrations for Samsara and CoPilot GPS systems, streamlining fleet tracking capabilities.',
+      'Enhanced Billing, Claims APIs, and Eligibility services, improving accuracy, interoperability, and performance.',
+      'Led Agile ceremonies, capacity planning, and backlog refinement, improving transparency and team throughput.',
+      'Collaborated with Security and Infrastructure stakeholders to align technical deliverables with regulatory requirements (DOT/FMCSA).',
+      'Oversaw QA, UAT, and pre-release validation, reducing post-release defects and improving production stability.',
     ],
   },
   {
-    title: "Freelance Web Developer",
-    company_name: "My Company",
-    icon: freelance,
-    iconBg: "#ff7200",
-    date: "Jan 2020 - CURRENT",
+    title: 'Product Manager / Sr. Dental Lab Tech',
+    company_name: '3Sixty Dental (formerly 360 Imaging)',
+    icon: threesixty, // Ensure you have this import
+    iconBg: '#ff0000',
+    date: 'Jan 2016 - Nov 2019',
     points: [
-      "Built scalable websites using front-end and back-end technologies, integrating payment systems for seamless transactions.",
-      "Led design and deployment efforts, including logo creation, domain setup, and digital marketing strategies.",
-      "Collaborated with clients to align web solutions with business goals, enhancing overall project success.",
-      "Managed multiple projects simultaneously, consistently meeting deadlines and exceeding client expectations.",
-      "Troubleshot and resolved WordPress rendering and styling errors, improving site performance for Limit Imagine LLC.",
-      "Redesigned Eastminster Presbyterian Church website, enhancing its user experience and visual appeal.",
+      'Led a cross-functional team to launch Anatomical Guide™, delivering proprietary implant-planning software and CAD/CAM workflows in a HIPAA-regulated environment.',
+      'Streamlined dental lab processes, reducing turnaround times by 20% through optimized workflows and resource allocation.',
+      'Developed a vendor on-boarding tool, cutting annual costs by 25% and improving communication across teams.',
+      'Improved quality control for patient-specific implants, reducing clinical errors by 30%.',
+      'Reduced material waste by 30% in CAD/CAM milling, improving prosthetic precision.',
+      'Ensured regulatory compliance, including MSDS documentation, for patient-specific medical devices.',
     ],
   },
 ];
