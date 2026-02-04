@@ -19,8 +19,8 @@ const Hero = () => {
             Hi, I'm <span className='text-[#915EFF]'>Bernard</span>
           </h1>
           <p className={`${styles.heroSubText} mt-2 text-white-100`}>
-            I develop mobile apps, web apps<br className="hidden sm:block" />{' '}
-            and dabble in cloud engineering
+            An AI Engineer, with mobile &
+            <br className='hidden sm:block' /> web app development experience.
           </p>
         </div>
       </div>
@@ -37,7 +37,7 @@ const Hero = () => {
               transition={{
                 duration: 1.5,
                 repeat: Infinity,
-                repeatType: "loop",
+                repeatType: 'loop',
               }}
               className='w-3 h-3 rounded-full bg-secondary mb-1'
             />

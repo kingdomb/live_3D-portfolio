@@ -92,7 +92,7 @@ const Navbar = () => {
             Bernard &nbsp;
             <span className='xl:block hidden'>
               {' '}
-              | Web & Mobile Developer Portfolio
+              | AI Engineer Portfolio
             </span>
           </p>
         </Link>
