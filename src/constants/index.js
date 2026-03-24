@@ -301,110 +301,110 @@ const projects = [
     demo_link:
       'https://kingdomb.github.io/live_portfolio-v2/assets/files/nlp-demo-video.mp4',
   },
-  {
-    name: 'Home Remodeling Website [RESPONSIVE]',
-    description:
-      "I built, deployed, and managed Edward Jr. Construction LLC's site under contract through my own media company, MMG LLC.",
-    tags: [
-      {
-        name: 'html',
-        color: 'blue-text-gradient',
-      },
-      {
-        name: 'jquery',
-        color: 'green-text-gradient',
-      },
-      {
-        name: 'php',
-        color: 'green-text-gradient',
-      },
-      {
-        name: 'css',
-        color: 'pink-text-gradient',
-      },
-      {
-        name: 'bootstrap',
-        color: 'pink-text-gradient',
-      },
-      {
-        name: 'mailchimp',
-        color: 'orange-text-gradient',
-      },
-    ],
-    image: edjrconstruction,
-    source_code_link: 'https://github.com/kingdomb/eduardjrconstruction',
-    demo_link: 'https://kingdomb.github.io/eduardjrconstruction/',
-  },
-  {
-    name: 'Lambo Details View [NON-RESPONSIVE]',
-    description:
-      'A non-functional, non-responsive, more details page that I created(from a mockup) to tryout an animation idea that displays a car image rolling into view.',
-    tags: [
-      {
-        name: 'html',
-        color: 'blue-text-gradient',
-      },
-      {
-        name: 'js',
-        color: 'green-text-gradient',
-      },
-      {
-        name: 'css',
-        color: 'pink-text-gradient',
-      },
-      {
-        name: 'cssanimations',
-        color: 'pink-text-gradient',
-      },
-    ],
-    image: lambo,
-    source_code_link: 'https://github.com/KingdomB/lambo-animation',
-    demo_link: 'https://kingdomb.github.io/lambo-animation/',
-  },
-  {
-    name: 'Angular GPA Calculator [RESPONSIVE]',
-    description:
-      'My first Angular project, completed for school using the Angular 9 framework. The application stores class grades and calculates GPAs. It’s showcased here to demonstrate my ability to work with unfamiliar technologies. [Use Student IDs (1007, 1008, 1009, 1010, 1011, or 1012) to login.]',
-    tags: [
-      {
-        name: 'angular',
-        color: 'blue-text-gradient',
-      },
-      {
-        name: 'css',
-        color: 'pink-text-gradient',
-      },
-      {
-        name: 'material',
-        color: 'pink-text-gradient',
-      },
-    ],
-    image: angularcalc,
-    source_code_link: 'https://github.com/kingdomb/angular_grade_gpa.calc./',
-    demo_link: 'https://kingdomb.github.io/angular_grade_gpa.calc./',
-  },
-  {
-    name: 'Gym Landing Site [NON-RESPONSIVE]',
-    description:
-      "I had fun building this non-functional landing page, and it's my favorite so far. I'm not particularly impressed by my icons, but that was the designer's choice. Enjoy!",
-    tags: [
-      {
-        name: 'html',
-        color: 'blue-text-gradient',
-      },
-      {
-        name: 'css',
-        color: 'pink-text-gradient',
-      },
-      {
-        name: 'bootstrap',
-        color: 'pink-text-gradient',
-      },
-    ],
-    image: gym1,
-    source_code_link: 'https://github.com/KingdomB/gym-landing',
-    demo_link: 'https://kingdomb.github.io/gym-landing/',
-  },
+  // {
+  //   name: 'Home Remodeling Website [RESPONSIVE]',
+  //   description:
+  //     "I built, deployed, and managed Edward Jr. Construction LLC's site under contract through my own media company, MMG LLC.",
+  //   tags: [
+  //     {
+  //       name: 'html',
+  //       color: 'blue-text-gradient',
+  //     },
+  //     {
+  //       name: 'jquery',
+  //       color: 'green-text-gradient',
+  //     },
+  //     {
+  //       name: 'php',
+  //       color: 'green-text-gradient',
+  //     },
+  //     {
+  //       name: 'css',
+  //       color: 'pink-text-gradient',
+  //     },
+  //     {
+  //       name: 'bootstrap',
+  //       color: 'pink-text-gradient',
+  //     },
+  //     {
+  //       name: 'mailchimp',
+  //       color: 'orange-text-gradient',
+  //     },
+  //   ],
+  //   image: edjrconstruction,
+  //   source_code_link: 'https://github.com/kingdomb/eduardjrconstruction',
+  //   demo_link: 'https://kingdomb.github.io/eduardjrconstruction/',
+  // },
+  // {
+  //   name: 'Lambo Details View [NON-RESPONSIVE]',
+  //   description:
+  //     'A non-functional, non-responsive, more details page that I created(from a mockup) to tryout an animation idea that displays a car image rolling into view.',
+  //   tags: [
+  //     {
+  //       name: 'html',
+  //       color: 'blue-text-gradient',
+  //     },
+  //     {
+  //       name: 'js',
+  //       color: 'green-text-gradient',
+  //     },
+  //     {
+  //       name: 'css',
+  //       color: 'pink-text-gradient',
+  //     },
+  //     {
+  //       name: 'cssanimations',
+  //       color: 'pink-text-gradient',
+  //     },
+  //   ],
+  //   image: lambo,
+  //   source_code_link: 'https://github.com/KingdomB/lambo-animation',
+  //   demo_link: 'https://kingdomb.github.io/lambo-animation/',
+  // },
+  // {
+  //   name: 'Angular GPA Calculator [RESPONSIVE]',
+  //   description:
+  //     'My first Angular project, completed for school using the Angular 9 framework. The application stores class grades and calculates GPAs. It’s showcased here to demonstrate my ability to work with unfamiliar technologies. [Use Student IDs (1007, 1008, 1009, 1010, 1011, or 1012) to login.]',
+  //   tags: [
+  //     {
+  //       name: 'angular',
+  //       color: 'blue-text-gradient',
+  //     },
+  //     {
+  //       name: 'css',
+  //       color: 'pink-text-gradient',
+  //     },
+  //     {
+  //       name: 'material',
+  //       color: 'pink-text-gradient',
+  //     },
+  //   ],
+  //   image: angularcalc,
+  //   source_code_link: 'https://github.com/kingdomb/angular_grade_gpa.calc./',
+  //   demo_link: 'https://kingdomb.github.io/angular_grade_gpa.calc./',
+  // },
+  // {
+  //   name: 'Gym Landing Site [NON-RESPONSIVE]',
+  //   description:
+  //     "I had fun building this non-functional landing page, and it's my favorite so far. I'm not particularly impressed by my icons, but that was the designer's choice. Enjoy!",
+  //   tags: [
+  //     {
+  //       name: 'html',
+  //       color: 'blue-text-gradient',
+  //     },
+  //     {
+  //       name: 'css',
+  //       color: 'pink-text-gradient',
+  //     },
+  //     {
+  //       name: 'bootstrap',
+  //       color: 'pink-text-gradient',
+  //     },
+  //   ],
+  //   image: gym1,
+  //   source_code_link: 'https://github.com/KingdomB/gym-landing',
+  //   demo_link: 'https://kingdomb.github.io/gym-landing/',
+  // },
 ];
 
 export { services, technologies, experiences, testimonials, projects };

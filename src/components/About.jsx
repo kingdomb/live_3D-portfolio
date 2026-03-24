@@ -47,20 +47,19 @@ const About = () => {
         variants={fadeIn('', '', 0.1, 1)}
         className='mt-4 text-secondary text-[17px] max-w-3xl leading-[30px] lg:mx-auto'
       >
-        I’m a Full-Stack AI Engineer & Release Manager with deep roots in
-        JavaScript, Azure, and mobile development. Building high-performance AI
-        solutions starts with selecting the right architecture—not just throwing
-        an LLM at every problem. I approach every decision with careful
-        consideration: Does this need a complex multi-agent system, or will a
-        deterministic script be faster and cheaper? My focus is on building
-        resilient systems, optimizing latency with RAG and vector databases, and
-        ensuring safety through rigorous "Shadow Mode" testing. Whether acting
-        as a Fractional AI Engineer or a Release Manager, I help organizations
-        bridge the gap between "prototype" and "production" without breaking the
-        budget. Let’s collaborate to turn your ideas into scalable, stable, and
-        intelligent solutions.
+        I am a Master's-level Software Engineer and Enterprise AI Strategist, specializing in
+        rebuilding organizational workflows around agentic AI and autonomous execution.
+        <br /><br />
+        My career is built at the intersection of complex systems engineering and highly
+        regulated environments. Before architecting enterprise AI platforms, I managed
+        mission-critical software releases in the freight industry and launched physical
+        medical devices in the dental space. I know what it takes to ship products that cannot fail.
+        <br /><br />
+        Today, my focus is entirely on AI leadership and architecture. I build resilience-first,
+        multi-agent systems that operate safely in production. I don't just implement AI as a
+        novelty; I treat it as digital labor, engineering the oversight, security, and enterprise
+        context required to solve real business bottlenecks and drive massive efficiency.
       </motion.p>
-
       <div className='mt-20 grid gap-10 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 place-items-center'>
         {services.map((service, index) => (
           <ServiceCard key={service.title} index={index} {...service} />
