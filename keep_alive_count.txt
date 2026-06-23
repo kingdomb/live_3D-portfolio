@@ -1,3 +1,21 @@
+---
+PURPOSE:
+  This file exists to keep the GitHub Actions scheduled workflow active.
+  GitHub disables scheduled workflows on repos with no push activity for 60 days.
+  A local systemd timer pushes a new count entry every 30 days to prevent that.
+
+HOW IT WORKS:
+  - Systemd timer: ~/.config/systemd/user/repo-keep-alive.timer (runs every 30 days)
+  - Script:        ~/.local/bin/repo-keep-alive.sh (appends next number and pushes)
+  - Log:           ~/.local/share/repo-keep-alive.log (check here if something goes wrong)
+
+MANUAL TEST:
+  systemctl --user start repo-keep-alive.service
+
+IF THE TIMER STOPS WORKING:
+  systemctl --user enable --now repo-keep-alive.timer
+---
+
 1
 2
 3
