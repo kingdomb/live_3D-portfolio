@@ -2,15 +2,40 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # Runs at 00:00 on every 6th day of the month
-    - cron: '0 0 */6 * *'
+    # Runs every 5 days to stay safely under the 7-day inactivity threshold
+    - cron: '0 0 */5 * *'
   workflow_dispatch: # Allows manual trigger for testing
 
 jobs:
   ping_supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Send a request to Supabase
+      # Option A: Query the PostgREST schema endpoint (forces a real DB connection)
+      - name: Ping PostgREST schema endpoint
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL }}/auth/v1/health" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "PostgREST schema endpoint status: $STATUS"
+
+      # Option B: Call the keep_alive RPC function (requires creating it in Supabase SQL editor first)
+      # SQL to run in Supabase: CREATE OR REPLACE FUNCTION keep_alive() RETURNS void AS $$ BEGIN END; $$ LANGUAGE plpgsql SECURITY DEFINER;
+      - name: Call keep_alive RPC function
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/keep_alive" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "RPC keep_alive status: $STATUS"
+
+      # Option C: Query an existing table (candidate_profile) — RLS may block data but DB activity is still registered
+      - name: Query candidate_profile table
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/candidate_profile?limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "candidate_profile query status: $STATUS"
