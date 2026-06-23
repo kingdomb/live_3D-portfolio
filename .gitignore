@@ -28,6 +28,7 @@ dist-ssr
 # vscode
 .vscode
 *.txt
+!keep_alive_count.txt
 node_modules
 
 #build
