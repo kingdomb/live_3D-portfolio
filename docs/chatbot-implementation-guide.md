@@ -1,6 +1,8 @@
 # AI Chatbot Implementation Guide
 
-A complete implementation guide for adding a floating AI chatbot to any service site using Supabase Edge Functions, the Anthropic Claude API, and React. Based on the production implementation in this portfolio repo.
+A complete implementation guide for adding a floating AI chatbot to any service site using Supabase Edge Functions, the Anthropic Claude API, and React. Works for any business type — law firm, plumber, cleaning service, portfolio, agency, etc.
+
+The table names and content change per business. The architecture, code, and deployment process are identical for all of them.
 
 ---
 
@@ -13,14 +15,119 @@ User Browser (React)
                     └── Supabase Edge Function (Deno)
                             ├── Rate limit check       → request_logs
                             ├── Fetch all context      → Promise.all([
-                            │       candidate_profile, experiences, skills,
-                            │       gaps_weaknesses, values_culture,
+                            │       business_profile, services, capabilities,
+                            │       limitations, client_fit,
                             │       faq_responses, ai_instructions ])
                             ├── buildSystemPrompt()
                             └── Claude API → return reply
 ```
 
-**Key insight:** The AI IS the product. Everything else is UI to invoke it. The quality of your answers depends entirely on the depth of context you put in the database — not the code.
+**Key insight:** The AI IS the product. Everything else is UI to invoke it. The quality of answers depends entirely on the depth of context in the database — not the code.
+
+---
+
+## Adapting for Your Industry
+
+Before touching any code, decide what your tables will be called and what goes in them. The table names in this guide are **generic**. Rename them to match your business.
+
+| Generic Table | Portfolio Site | Law Firm | Plumber | Cleaning Service |
+|---|---|---|---|---|
+| `business_profile` | `candidate_profile` | `firm_profile` | `business_profile` | `business_profile` |
+| `services` | `experiences` | `practice_areas` | `services` | `service_packages` |
+| `capabilities` | `skills` | `case_types` | `specialties` | `capabilities` |
+| `limitations` | `gaps_weaknesses` | `referral_types` | `out_of_scope` | `exclusions` |
+| `client_fit` | `values_culture` | `ideal_client` | `service_area` | `client_fit` |
+| `faq_responses` | `faq_responses` | `faq_responses` | `faq_responses` | `faq_responses` |
+| `ai_instructions` | `ai_instructions` | `ai_instructions` | `ai_instructions` | `ai_instructions` |
+| `request_logs` | `request_logs` | `request_logs` | `request_logs` | `request_logs` |
+
+---
+
+## What Goes in Each Table — By Industry
+
+### `business_profile` (one row, the AI's core identity)
+
+| Field | Portfolio | Law Firm | Plumber | Cleaning Service |
+|---|---|---|---|---|
+| Name | Candidate name | Firm name | Business name | Business name |
+| Title/Tagline | Job title | Practice focus | "Licensed & Insured" | "Residential & Commercial" |
+| Main pitch | Career summary | What types of clients you help | What you fix / service area | What you clean / how it works |
+| What you want | Target roles | Ideal case types | Preferred job types | Preferred clients |
+| What you avoid | Roles that don't fit | Cases you decline | Jobs you refer out | Situations you don't handle |
+| Contact | LinkedIn | Consultation booking link | Phone / emergency line | Booking link |
+
+---
+
+### `services` (one row per offering)
+
+| Field | Portfolio | Law Firm | Plumber | Cleaning Service |
+|---|---|---|---|---|
+| Name | Company / role | Practice area | Service type | Package name |
+| Description | What you did | What cases you handle | What the service includes | What's included |
+| Timeline | Employment dates | Typical case duration | How long jobs take | Frequency / visit duration |
+| Price range | N/A | Fee structure | Typical cost range | Pricing |
+| Best for | N/A | Who this practice area helps | Job type / home size | Client type |
+| Private context | Why joined/left, honest challenges | Case win/loss rates, complexity notes | Common problems found, gotchas | Notes on difficult properties |
+
+---
+
+### `capabilities` (skills / strengths)
+
+| Field | All business types |
+|---|---|
+| Name | Skill or capability name |
+| Category | `strong` / `moderate` / `gap` |
+| Notes | Honest assessment — "Good but only residential, not commercial" |
+
+---
+
+### `limitations` (what you DON'T do — critical for honest AI)
+
+This table makes the AI valuable. The AI can only be honest about limitations it knows about. Be explicit.
+
+| Examples by type | |
+|---|---|
+| **Portfolio** | "No mobile development experience", "Don't want management-only roles" |
+| **Law firm** | "We don't handle criminal cases", "No contingency for contract disputes" |
+| **Plumber** | "We don't service commercial buildings", "No new construction plumbing" |
+| **Cleaning** | "We don't do biohazard cleanup", "No homes with more than 4 pets" |
+
+---
+
+### `client_fit` (who is ideal, what environment works best)
+
+| Examples by type | |
+|---|---|
+| **Portfolio** | Remote-first teams, startup to Series C, engineering-led culture |
+| **Law firm** | Personal injury clients with clear liability, not complex corporate disputes |
+| **Plumber** | Residential homeowners in [zip codes], existing customers get priority |
+| **Cleaning** | Airbnb hosts needing turnover cleans, recurring residential clients |
+
+---
+
+### `faq_responses` (pre-written answers to common questions)
+
+Pre-answer the questions you get asked most. The AI uses these verbatim.
+
+| Examples by type | |
+|---|---|
+| **Portfolio** | "What's your biggest weakness?", "Why did you leave your last role?" |
+| **Law firm** | "Do you offer free consultations?", "How do you charge?" |
+| **Plumber** | "Do you do emergency calls?", "Are you licensed and insured?" |
+| **Cleaning** | "Do you bring your own supplies?", "Are your cleaners background checked?" |
+
+---
+
+### `ai_instructions` (custom behavioral rules)
+
+Write instructions that control how the AI handles edge cases. Loaded dynamically — change them without redeploying.
+
+| Examples by type | |
+|---|---|
+| **Portfolio** | "If there are 3+ major gaps, recommend they move on", "Don't hedge — be direct" |
+| **Law firm** | "Never give specific legal advice — direct to consultation", "Always mention free initial consultation" |
+| **Plumber** | "Always mention we offer free estimates", "For emergencies mention 24/7 availability" |
+| **Cleaning** | "If they ask about pet hair, ask how many pets first before quoting", "Mention satisfaction guarantee on every pricing question" |
 
 ---
 
@@ -43,16 +150,12 @@ npm install @supabase/supabase-js framer-motion react-markdown
 ### 2a. Create a Project
 
 1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Name it (e.g., `my-portfolio` or `yourname-site`)
-3. Create a strong database password and **save it somewhere**
-4. Choose a region close to you
-5. Wait 1-2 minutes for it to initialize
+2. Create a strong database password and **save it somewhere**
+3. Choose a region close to you — wait 1-2 minutes to initialize
 
 ### 2b. Get Your Credentials
 
-In your Supabase project: **Settings (gear icon) → API**
-
-Save these three values:
+**Settings (gear icon) → API**
 
 | Key | Where used |
 |---|---|
@@ -60,18 +163,15 @@ Save these three values:
 | **anon public key** | Frontend `.env` and GitHub Secrets |
 | **service role key** | Edge Function only — never in the browser |
 
-### 2c. Disable Email Confirmation (for easier testing)
+### 2c. Disable Email Confirmation
 
-1. Supabase Dashboard → **Authentication → Providers**
-2. Click **Email**
-3. Turn **OFF** "Confirm email"
-4. Click **Save**
+**Authentication → Providers → Email → turn OFF "Confirm email" → Save**
 
-This means you won't need to verify email when creating your admin account.
+This avoids needing to verify email every time you test the admin login.
 
 ### 2d. Environment Variables
 
-Create a `.env` file at your project root (add to `.gitignore`):
+`.env` (add to `.gitignore`):
 
 ```env
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -85,229 +185,178 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```js
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 ```
 
 ---
 
 ## 3. Database Schema
 
-Run the following SQL in your Supabase SQL editor (**Dashboard → SQL Editor**). All tables use `uuid` primary keys and reference a central profile row.
+Run these in **Supabase Dashboard → SQL Editor**. Replace generic table names with your business-specific names from the mapping above.
 
 ---
 
-### Table 1: `candidate_profile`
-
-The primary identity and context for the AI. One row per deployment.
+### Table 1: `business_profile`
 
 ```sql
-create table candidate_profile (
+create table business_profile (
   id uuid primary key default uuid_generate_v4(),
-  name text not null,
-  email text,
-  title text,
-  target_titles text[],
-  target_company_stages text[],
-  elevator_pitch text,
-  career_narrative text,
-  looking_for text,
-  not_looking_for text,
-  management_style text,
-  work_style text,
-  salary_min integer,
-  salary_max integer,
-  availability_status text,
-  availability_date date,
+
+  -- Core identity
+  business_name text not null,
+  tagline text,
+  main_pitch text,          -- What you do and why people should care. 2-3 paragraphs.
+  full_story text,          -- The longer narrative. How you got here, your approach.
+
+  -- Fit signals
+  ideal_for text,           -- Who is a great client/employer/customer
+  not_ideal_for text,       -- Who should look elsewhere (be honest)
+
+  -- Contact
+  contact_email text,
+  contact_phone text,
+  booking_url text,
   location text,
-  remote_preference text,
-  github_url text,
+
+  -- Social / links
+  website_url text,
   linkedin_url text,
+  github_url text,
+
   created_at timestamp default now(),
   updated_at timestamp default now()
 );
 ```
 
-**What to put here:**
-- `elevator_pitch`: 2-3 sentences — how you'd introduce yourself
-- `career_narrative`: Your full story. How you got here, what drives you. Write 2-3 paragraphs. This is the AI's backbone.
-- `looking_for` / `not_looking_for`: Be specific. The AI will use these to qualify or disqualify opportunities honestly.
-- `target_titles` / `target_company_stages`: Arrays help the AI give precise answers about role fit.
-
 ---
 
-### Table 2: `experiences`
+### Table 2: `services`
 
-One row per job. Split into public data (what visitors see) and private AI context (what powers honest answers).
+One row per service, product, practice area, or role. Rename this table to match your business (e.g., `practice_areas`, `service_packages`, `experiences`).
 
 ```sql
-create table experiences (
+create table services (
   id uuid primary key default uuid_generate_v4(),
-  candidate_id uuid references candidate_profile(id),
+  profile_id uuid references business_profile(id),
 
-  -- Public (visible on site)
-  company_name text not null,
-  title text not null,
-  title_progression text,
-  start_date date,
-  end_date date,
-  is_current boolean default false,
-  bullet_points text[],
+  -- Public-facing info
+  service_name text not null,
+  description text,            -- What's included, what problem it solves
+  typical_timeline text,       -- e.g. "2-4 weeks", "Same day", "3-month cases"
+  price_range text,            -- e.g. "$150/hr", "$200-$500", "Starting at $99/mo"
+  best_for text,               -- Who this specific service is ideal for
+  bullet_points text[],        -- Key selling points
 
-  -- Private (AI context only — the honest stuff)
-  why_joined text,
-  why_left text,
-  actual_contributions text,
-  proudest_achievement text,
-  would_do_differently text,
-  challenges_faced text,
-  lessons_learned text,
-  manager_would_say text,
-  reports_would_say text,
-  quantified_impact jsonb,
+  -- Private context (AI only — honest notes)
+  private_notes text,          -- What makes this service tricky, common problems,
+                               -- things you don't advertise but are true
 
-  display_order integer,
+  display_order int default 0,
   created_at timestamp default now()
 );
 ```
 
-**What to put in the private fields:**
-- `why_joined` / `why_left`: Be honest. "The team was toxic" or "I was laid off" is fine — the AI handles honesty better than hedging.
-- `actual_contributions`: What did YOU specifically do vs. the team?
-- `manager_would_say`: How would your manager actually describe your performance?
-- `challenges_faced`: What was genuinely hard or where did you fall short?
-- `quantified_impact`: JSON with real numbers — `{"revenue": "$2M", "team_size": 5, "uptime_improvement": "40%"}`
-
-> The private fields are never directly readable by visitors. Only the Edge Function (service role) can access them to build the AI's context.
+**Portfolio equivalent fields:** `company_name`, `title`, `start_date`, `end_date`, `why_joined`, `why_left`, `actual_contributions`, `challenges_faced`, `lessons_learned`, `manager_would_say`
 
 ---
 
-### Table 3: `skills`
+### Table 3: `capabilities`
 
-Honest self-assessment by category.
+Honest self-assessment of what you're strong at, moderate at, or weak/gap on.
 
 ```sql
-create table skills (
+create table capabilities (
   id uuid primary key default uuid_generate_v4(),
-  candidate_id uuid references candidate_profile(id),
-  skill_name text not null,
-  category text,           -- 'strong', 'moderate', or 'gap'
-  self_rating integer,     -- 1-5
-  evidence text,           -- Projects, years, certifications
-  honest_notes text,       -- e.g. "Good but rusty, haven't used in 2 years"
-  years_experience decimal,
-  last_used date,
+  profile_id uuid references business_profile(id),
+  name text not null,
+  category text,          -- 'strong', 'moderate', or 'gap'
+  honest_notes text,      -- "Great at residential, never done commercial"
+  evidence text,          -- Years, certifications, examples
   created_at timestamp default now()
 );
 ```
 
-**What to put here:** Be ruthlessly honest about `category`. If it goes in "gap" it makes the AI valuable. Things that are genuinely weak, rarely used, or only theoretical belong in gap — not moderate.
-
 ---
 
-### Table 4: `gaps_weaknesses`
+### Table 4: `limitations`
 
-Explicit weaknesses. **This table is critical.** The AI can only be honest about gaps it knows about.
+What you don't do, won't do, or aren't the right fit for. **This table is what makes the AI trustworthy.** The AI can only be honest about limitations it knows about — document them thoroughly.
 
 ```sql
-create table gaps_weaknesses (
+create table limitations (
   id uuid primary key default uuid_generate_v4(),
-  candidate_id uuid references candidate_profile(id),
-  gap_type text,             -- 'skill', 'experience', 'environment', 'role_type'
-  description text not null,
-  why_its_a_gap text,
-  interest_in_learning boolean default false,
+  profile_id uuid references business_profile(id),
+  limitation_type text,      -- 'skill', 'service', 'geography', 'client_type', 'role_type'
+  description text not null, -- What the limitation is
+  why_not text,              -- Why you don't handle this
+  referral_note text,        -- Who to refer to instead (optional)
   created_at timestamp default now()
 );
 ```
 
-**What to put here:**
-- Known skill gaps ("No Java experience")
-- Types of roles that would be bad fits ("Pure management with no IC work")
-- Work environments you'd struggle in ("No-process startup chaos")
-- Honest weaknesses ("I struggle in highly ambiguous environments with no structure")
-
 ---
 
-### Table 5: `values_culture`
+### Table 5: `client_fit`
 
-What you need to thrive and what would make you miserable. The AI uses this to assess cultural fit.
+What kind of client/project/environment you work best in, and what you struggle with.
 
 ```sql
-create table values_culture (
+create table client_fit (
   id uuid primary key default uuid_generate_v4(),
-  candidate_id uuid references candidate_profile(id),
-  must_haves text,
+  profile_id uuid references business_profile(id),
+  ideal_client text,
+  not_a_fit_for text,
+  working_style text,
+  requirements text,         -- "Must have X before we start"
   dealbreakers text,
-  management_style_preferences text,
-  team_size_preferences text,
   how_handle_conflict text,
   how_handle_ambiguity text,
-  how_handle_failure text,
   created_at timestamp default now()
 );
 ```
-
-**What to put here:** Write these as you'd answer them in an interview. "I need a manager who gives feedback directly and doesn't micromanage. I thrive in teams of 3-8 engineers. I struggle when there's no clear ownership."
 
 ---
 
 ### Table 6: `faq_responses`
 
-Pre-written answers to common questions. The AI uses these verbatim when relevant, ensuring consistency on important topics.
+Pre-written answers to common questions. The AI uses these verbatim when the question matches.
 
 ```sql
 create table faq_responses (
   id uuid primary key default uuid_generate_v4(),
-  candidate_id uuid references candidate_profile(id),
+  profile_id uuid references business_profile(id),
   question text not null,
   answer text not null,
-  is_common_question boolean default false,
+  is_common boolean default false,
   created_at timestamp default now()
 );
 ```
-
-**Suggested starter questions to pre-answer:**
-- "Tell me about yourself"
-- "What's your biggest weakness?"
-- "Why are you leaving your current role?"
-- "Where do you see yourself in 5 years?"
-- "Tell me about a time you failed"
-
-Write honest answers. These go directly into the AI's context.
 
 ---
 
 ### Table 7: `ai_instructions`
 
-Custom behavioral rules you write for the AI. Loaded dynamically — change the behavior without redeploying.
+Custom behavioral rules written in plain English. The AI loads and follows these on every request. Change them any time without redeploying.
 
 ```sql
 create table ai_instructions (
   id uuid primary key default uuid_generate_v4(),
-  candidate_id uuid references candidate_profile(id),
-  instruction_type text,   -- 'honesty', 'tone', 'boundaries'
+  profile_id uuid references business_profile(id),
+  instruction_type text,    -- 'honesty', 'tone', 'boundaries', 'sales'
   instruction text not null,
   priority integer default 0,
   created_at timestamp default now()
 );
 ```
 
-**Example instructions to add:**
-- "Never oversell me"
-- "If the role requires X and I don't have it, say so directly"
-- "Use phrases like 'I'm probably not your person' when appropriate"
-- "Don't hedge — be direct"
-- "It's okay to recommend they not hire me"
-- "If there are 3+ major gaps, tell them honestly that I'm not a fit"
-
 ---
 
 ### Table 8: `request_logs`
 
-Used by the Edge Function to enforce per-IP rate limits. Required.
+Rate limiting. Required.
 
 ```sql
 create table request_logs (
@@ -322,8 +371,6 @@ create table request_logs (
 
 ### `keep_alive` Function
 
-Required for the keep-alive workflow:
-
 ```sql
 create or replace function keep_alive()
 returns void as $$ begin end; $$ language plpgsql security definer;
@@ -333,46 +380,46 @@ returns void as $$ begin end; $$ language plpgsql security definer;
 
 ## 4. Row Level Security (RLS)
 
-Enable RLS on all tables, then create public views that expose only non-sensitive fields. The Edge Function uses the service role key (bypasses RLS) to read private context, while anonymous visitors can only read sanitized data.
+Enable RLS on all tables. Create public views that strip private/sensitive fields. The Edge Function reads private data via the service role key — visitors never can.
 
 ```sql
 -- Enable RLS on all tables
-alter table candidate_profile enable row level security;
-alter table experiences enable row level security;
-alter table skills enable row level security;
-alter table gaps_weaknesses enable row level security;
-alter table values_culture enable row level security;
+alter table business_profile enable row level security;
+alter table services enable row level security;
+alter table capabilities enable row level security;
+alter table limitations enable row level security;
+alter table client_fit enable row level security;
 alter table faq_responses enable row level security;
 alter table ai_instructions enable row level security;
 alter table request_logs enable row level security;
 
--- Public view: profile without salary, email, or private notes
-create view candidate_profile_public as
-  select id, name, title, target_titles, elevator_pitch, career_narrative,
-         looking_for, location, remote_preference, linkedin_url, github_url
-  from candidate_profile;
+-- Public view: profile without sensitive contact info
+create view business_profile_public as
+  select id, business_name, tagline, main_pitch, full_story,
+         ideal_for, not_ideal_for, location, website_url, linkedin_url
+  from business_profile;
 
--- Public view: experiences without private AI context
-create view experiences_public as
-  select id, candidate_id, company_name, title, title_progression,
-         start_date, end_date, is_current, bullet_points, display_order
-  from experiences;
+-- Public view: services without private_notes
+create view services_public as
+  select id, profile_id, service_name, description, typical_timeline,
+         price_range, best_for, bullet_points, display_order
+  from services;
 
--- Public view: skills without honest_notes and evidence
-create view skills_public as
-  select id, candidate_id, skill_name, category, self_rating
-  from skills;
+-- Public view: capabilities without honest_notes and evidence
+create view capabilities_public as
+  select id, profile_id, name, category
+  from capabilities;
 
--- Anonymous users can read public views only
-create policy "Public can read profile" on candidate_profile
-  for select using (true);
+-- Anonymous users can read public views
+create policy "Public read" on business_profile for select using (true);
+create policy "Public read" on services for select using (true);
+create policy "Public read" on capabilities for select using (true);
+create policy "Public read" on limitations for select using (true);
+create policy "Public read" on faq_responses for select using (true);
 
 -- Authenticated admin has full access
-create policy "Admin full access" on candidate_profile
-  for all using (auth.role() = 'authenticated');
+create policy "Admin access" on business_profile for all using (auth.role() = 'authenticated');
 ```
-
-> The private fields (`why_left`, `challenges_faced`, `honest_notes`, etc.) are never directly readable by visitors. The Edge Function reads them server-side using the service role key to build the AI's context.
 
 ---
 
@@ -380,13 +427,13 @@ create policy "Admin full access" on candidate_profile
 
 ### 5a. Set Secrets
 
-Supabase Dashboard → **Project Settings → Edge Functions → Secrets → Add Secret**:
+**Supabase Dashboard → Project Settings → Edge Functions → Secrets → Add Secret**
 
 | Secret Name | Value |
 |---|---|
-| `ANTHROPIC_API_KEY` | Your key from [console.anthropic.com](https://console.anthropic.com) |
+| `ANTHROPIC_API_KEY` | Your key from console.anthropic.com |
 
-> `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically — do not set them manually.
+> `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
 
 ### 5b. Deploy
 
@@ -399,7 +446,7 @@ supabase functions deploy chat
 
 ### 5c. Edge Function Code
 
-`supabase/functions/chat/index.ts`:
+`supabase/functions/chat/index.ts` — replace generic table names with yours:
 
 ```typescript
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
@@ -442,25 +489,28 @@ serve(async (req) => {
     await supabase.from('request_logs').insert({ ip_address: clientIP, function_name: 'chat' })
 
     // Fetch all context in parallel
+    // Replace table names here with your business-specific names
     const [
       { data: profile },
-      { data: experiences },
-      { data: skills },
-      { data: gaps },
-      { data: values },
+      { data: services },
+      { data: capabilities },
+      { data: limitations },
+      { data: clientFit },
       { data: faqs },
       { data: instructions }
     ] = await Promise.all([
-      supabase.from('candidate_profile').select('*').single(),
-      supabase.from('experiences').select('*').order('display_order'),
-      supabase.from('skills').select('*'),
-      supabase.from('gaps_weaknesses').select('*'),
-      supabase.from('values_culture').select('*').single(),
+      supabase.from('business_profile').select('*').single(),
+      supabase.from('services').select('*').order('display_order'),
+      supabase.from('capabilities').select('*'),
+      supabase.from('limitations').select('*'),
+      supabase.from('client_fit').select('*').single(),
       supabase.from('faq_responses').select('*'),
       supabase.from('ai_instructions').select('*').order('priority', { ascending: false })
     ])
 
-    const systemPrompt = buildSystemPrompt(profile, experiences, skills, gaps, values, faqs, instructions)
+    const systemPrompt = buildSystemPrompt(
+      profile, services, capabilities, limitations, clientFit, faqs, instructions
+    )
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
@@ -485,92 +535,128 @@ serve(async (req) => {
   }
 })
 
-function buildSystemPrompt(profile, experiences, skills, gaps, values, faqs, instructions) {
-  return `
-You are an AI assistant representing ${profile?.name}, a ${profile?.title}.
-You speak in the THIRD PERSON. Refer to ${profile?.name} as "${profile?.name}" or "he/she/they".
-NEVER use "I", "me", or "my". You are NOT the candidate — you are their AI agent.
+function buildSystemPrompt(profile, services, capabilities, limitations, clientFit, faqs, instructions) {
+  // Customize this persona description for your business type.
+  // Portfolio: "You are an AI agent for a job candidate named..."
+  // Law firm: "You are an AI assistant for [Firm Name], a law firm specializing in..."
+  // Plumber: "You are an AI assistant for [Business], a licensed plumbing service..."
+  // Cleaning: "You are an AI assistant for [Business], a residential cleaning service..."
 
-## YOUR CORE DIRECTIVE
+  return `
+You are an AI assistant for ${profile?.business_name}. ${profile?.tagline || ''}
+Your job is to help visitors understand our services, answer their questions honestly,
+and determine if we are a good fit for their needs.
+
+## CUSTOM INSTRUCTIONS
 ${instructions?.map(i => `- ${i.instruction}`).join('\n') || '- Be honest and direct'}
 
-You must be BRUTALLY HONEST. Your job is NOT to sell ${profile?.name} to everyone.
-Your job is to help people quickly determine if there's a genuine fit. This means:
-- If they ask about something ${profile?.name} can't do, SAY SO DIRECTLY
+## HONESTY DIRECTIVE
+You must be direct and honest. Your job is NOT to sell to everyone.
+Your job is to help people quickly determine if there is a genuine fit. This means:
+- If we don't offer something they need, SAY SO DIRECTLY
+- If they're not a good fit, tell them politely but clearly
 - Never hedge or use weasel words
-- It's perfectly acceptable to say "${profile?.name} is probably not the right person for this"
 - Honesty builds trust. Overselling wastes everyone's time.
+- It's acceptable to say "We're probably not the right fit for this"
 
-## ABOUT ${profile?.name}
-${profile?.elevator_pitch}
-${profile?.career_narrative}
+## ABOUT US
+${profile?.main_pitch}
+${profile?.full_story || ''}
 
-What ${profile?.name} is looking for: ${profile?.looking_for}
-What ${profile?.name} is NOT looking for: ${profile?.not_looking_for}
+Who we work best with: ${profile?.ideal_for}
+Not ideal for: ${profile?.not_ideal_for}
 
-## WORK EXPERIENCE
-${experiences?.map(exp => `
-### ${exp.company_name} (${exp.start_date} - ${exp.is_current ? 'Present' : exp.end_date})
-Title: ${exp.title}${exp.title_progression ? ` | Progression: ${exp.title_progression}` : ''}
-Public achievements: ${exp.bullet_points?.map(b => `- ${b}`).join('\n') || 'N/A'}
-PRIVATE CONTEXT (use this to answer honestly):
-- Why joined: ${exp.why_joined}
-- Why left: ${exp.why_left}
-- What ${profile?.name} actually did: ${exp.actual_contributions}
-- Proudest of: ${exp.proudest_achievement}
-- Would do differently: ${exp.would_do_differently}
-- Challenges: ${exp.challenges_faced}
-- Lessons learned: ${exp.lessons_learned}
-- Manager would say: ${exp.manager_would_say}
+## OUR SERVICES
+${services?.map(s => `
+### ${s.service_name}
+${s.description}
+Timeline: ${s.typical_timeline || 'Varies'}
+Price: ${s.price_range || 'Contact us for a quote'}
+Best for: ${s.best_for || 'General clients'}
+Key points: ${s.bullet_points?.join(', ') || ''}
 `).join('\n---\n')}
 
-## SKILLS SELF-ASSESSMENT
-### Strong
-${skills?.filter(s => s.category === 'strong').map(s => `- ${s.skill_name}: ${s.honest_notes || s.evidence}`).join('\n')}
+## WHAT WE'RE GREAT AT
+${capabilities?.filter(c => c.category === 'strong').map(c => `- ${c.name}: ${c.honest_notes || ''}`).join('\n')}
 
-### Moderate
-${skills?.filter(s => s.category === 'moderate').map(s => `- ${s.skill_name}: ${s.honest_notes || s.evidence}`).join('\n')}
+## WHAT WE DO MODERATELY WELL
+${capabilities?.filter(c => c.category === 'moderate').map(c => `- ${c.name}: ${c.honest_notes || ''}`).join('\n')}
 
-### Gaps (BE UPFRONT ABOUT THESE)
-${skills?.filter(s => s.category === 'gap').map(s => `- ${s.skill_name}: ${s.honest_notes}`).join('\n')}
+## WHAT WE DON'T DO (BE UPFRONT ABOUT THESE)
+${capabilities?.filter(c => c.category === 'gap').map(c => `- ${c.name}: ${c.honest_notes || ''}`).join('\n')}
 
-## EXPLICIT GAPS & WEAKNESSES
-${gaps?.map(g => `- ${g.description}: ${g.why_its_a_gap}${g.interest_in_learning ? ' (actively improving)' : ' (not interested in developing this)'}`).join('\n')}
+## LIMITATIONS & WHAT WE REFER OUT
+${limitations?.map(l => `- ${l.description}: ${l.why_not}${l.referral_note ? ` (Refer to: ${l.referral_note})` : ''}`).join('\n')}
 
-## VALUES & CULTURE FIT
-Must-haves: ${values?.must_haves}
-Dealbreakers: ${values?.dealbreakers}
-Management style needed: ${values?.management_style_preferences}
-Team size preference: ${values?.team_size_preferences}
-Handles conflict by: ${values?.how_handle_conflict}
-Handles ambiguity by: ${values?.how_handle_ambiguity}
+## IDEAL CLIENT FIT
+${clientFit?.ideal_client || ''}
+Not a fit for: ${clientFit?.not_a_fit_for || ''}
+Our working style: ${clientFit?.working_style || ''}
+Requirements: ${clientFit?.requirements || ''}
+Dealbreakers: ${clientFit?.dealbreakers || ''}
 
 ## PRE-WRITTEN ANSWERS TO COMMON QUESTIONS
 ${faqs?.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n\n')}
 
 ## RESPONSE GUIDELINES
-- Speak in third person as ${profile?.name}'s agent
-- Be warm but direct
-- Keep responses concise unless detail is asked for
-- If you don't know something specific, say "${profile?.name}'s records don't mention that"
-- When discussing gaps, own them confidently — they're features, not bugs
-- If someone asks about a role that's clearly not a fit, tell them directly and explain why
+- Be professional, warm, and direct
+- Keep responses concise — visitors don't want to read paragraphs
+- If asked something not covered here, say "I don't have that specific info — reach out to us directly at ${profile?.contact_email || profile?.contact_phone}"
+- Always mention how to contact us or book when relevant
+- Guide qualified leads toward taking the next step
+- Disqualify visitors who aren't a fit — it respects their time and ours
   `.trim()
 }
 ```
 
 ---
 
-## 6. Chat Interface Component
+## 6. System Prompt Customization by Industry
+
+The `buildSystemPrompt` function's opening paragraph and tone should match your business. Replace the top section comment:
+
+**Portfolio / Job Candidate:**
+```
+You are an AI agent representing [Name], a [Title].
+Speak in THIRD PERSON. You are their agent, not them.
+```
+
+**Law Firm:**
+```
+You are an AI assistant for [Firm Name].
+IMPORTANT: Never give specific legal advice. Always recommend scheduling
+a consultation for specific legal questions. You can explain general
+process and what to expect, but not legal strategy.
+```
+
+**Plumber:**
+```
+You are an AI assistant for [Business Name], a licensed plumbing company
+serving [City/Region]. You help homeowners understand our services,
+get rough estimates, and schedule service calls.
+```
+
+**Cleaning Service:**
+```
+You are an AI assistant for [Business Name]. You help clients understand
+our cleaning packages, pricing, and booking process.
+Always mention our satisfaction guarantee when pricing comes up.
+```
+
+---
+
+## 7. Chat Interface Component
 
 ### Positioning
 
-- **Trigger button**: `fixed bottom-24 right-6 z-50` — sits above a bottom nav if present; change to `bottom-6` if no bottom nav
+- **Trigger button**: `fixed bottom-24 right-6 z-50` — above a bottom nav bar; use `bottom-6` if no bottom nav
 - **Chat window**: `fixed bottom-6 right-6 z-50` — anchored bottom-right corner
-- **Width**: `w-full max-w-[380px]` — full width on mobile, capped at 380px on larger screens
+- **Width**: `w-full max-w-[380px]` — full width on mobile, capped at 380px
 - **Height**: `h-[500px]` — fixed with internal scroll
 
 ### Component
+
+Customize `SUGGESTED_QUESTIONS` and the opening `content` message for your business.
 
 `src/components/ChatInterface.jsx`:
 
@@ -580,11 +666,16 @@ import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
+// Customize these for your business type:
+// Law firm: "Do you handle free consultations?", "What's your fee structure?"
+// Plumber: "Do you do emergency calls?", "Are you licensed and insured?"
+// Cleaning: "Do you bring supplies?", "How do you price jobs?"
+// Portfolio: "What's your biggest weakness?", "Why did you leave your last role?"
 const SUGGESTED_QUESTIONS = [
-  "What's your biggest weakness?",
-  "Tell me about a project that failed",
-  "Why did you leave your last role?",
-  "What would your last manager say about you?",
+  "What services do you offer?",
+  "How much does it cost?",
+  "How do I get started?",
+  "Are you available in my area?",
 ];
 
 export default function ChatInterface() {
@@ -592,7 +683,8 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hi! I'm an AI agent. Ask me anything — including the tough questions.",
+      // Customize this opening line:
+      content: "Hi! I can answer questions about our services, pricing, and availability. What would you like to know?",
     },
   ]);
   const [input, setInput] = useState('');
@@ -650,7 +742,8 @@ export default function ChatInterface() {
         }`}
       >
         <span className="text-2xl">🤖</span>
-        <span className="font-bold hidden md:inline">Ask AI</span>
+        {/* Customize this label: */}
+        <span className="font-bold hidden md:inline">Ask a Question</span>
       </motion.button>
 
       {/* Chat window */}
@@ -666,7 +759,8 @@ export default function ChatInterface() {
             <div className="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <h3 className="text-white font-bold">AI Agent</h3>
+                {/* Customize this header title: */}
+                <h3 className="text-white font-bold">AI Assistant</h3>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -711,7 +805,7 @@ export default function ChatInterface() {
                 </div>
               ))}
 
-              {/* Pre-seeded suggested questions — shown only on first open */}
+              {/* Suggested questions — shown only on first open */}
               {showSuggestions && (
                 <div className="space-y-2 pt-2">
                   <p className="text-xs text-gray-500 text-center">Try asking:</p>
@@ -768,10 +862,9 @@ export default function ChatInterface() {
 }
 ```
 
-### Adding to Your App
+### Add to Root of App
 
 ```jsx
-// App.jsx or root layout
 import ChatInterface from './components/ChatInterface';
 
 function App() {
@@ -786,39 +879,34 @@ function App() {
 
 ---
 
-## 7. Making the AI Actually Honest
+## 8. Making the AI Honest (Not Sycophantic)
 
-The hardest part isn't the tech — it's getting the AI to NOT be sycophantic. By default, Claude wants to be helpful and agreeable. You have to explicitly override this.
+Claude defaults to being helpful and agreeable. For service sites this becomes a problem — it will oversell. You must explicitly override this.
 
-**Five techniques that work:**
+**Five techniques:**
 
-1. **Explicit anti-sycophancy in system prompt** — "Never oversell. It's okay to say I'm not the right person."
-2. **Give it permission to reject** — "If there are 3+ major gaps, recommend they not hire me."
-3. **Provide the gaps explicitly** — The AI can only be honest about gaps it knows about. Document your weaknesses thoroughly in `gaps_weaknesses`.
-4. **Test with bad-fit scenarios** — Ask it questions where the honest answer is "no" and verify it says no.
-5. **Use `ai_instructions` table** — Write rules like "Don't hedge — be direct" and load them dynamically.
+1. **Say it directly in the system prompt** — "Your job is NOT to sell to everyone."
+2. **Give it permission to disqualify** — "If we don't handle X, tell them directly and suggest who might."
+3. **Fill the `limitations` table thoroughly** — the AI can only be honest about what it knows.
+4. **Use `ai_instructions` for edge cases** — "If they need commercial service, tell them we only do residential."
+5. **Test with bad-fit questions** — ask questions where honest answer is "no" and verify it says no.
 
-**Example of correct honesty vs. sycophancy:**
-
+**Example — Plumber:**
 ```
-Question: "We need someone with 5+ years of mobile development"
+Visitor: "Do you install commercial fire suppression systems?"
 
-GOOD response: "[Name] doesn't have mobile development experience.
-Their background is entirely backend and infrastructure. You probably
-want someone who can hit the ground running — they're not your person
-for this role."
+GOOD: "That's outside what we handle — we're a residential plumber.
+For commercial fire systems you'd want a licensed fire protection contractor."
 
-BAD response: "While [Name] hasn't done mobile specifically, their
-strong engineering fundamentals would allow them to pick it up quickly..."
+BAD: "While we primarily focus on residential, our team has strong
+plumbing fundamentals that could potentially be applied to commercial..."
 ```
-
-The bad response hedges. The good response qualifies the lead and respects everyone's time.
 
 ---
 
-## 8. Keep-Alive: GitHub Actions Workflow
+## 9. Keep-Alive: GitHub Actions Workflow
 
-Supabase free tier pauses projects after **7 days of no database activity**. This workflow runs every 5 days using real database requests (not just a health check ping, which doesn't count as activity).
+Supabase free tier pauses projects after **7 days of no database activity**. Pinging `/auth/v1/health` does NOT count as activity — you need real database requests.
 
 `.github/workflows/keep_alive.yml`:
 
@@ -827,7 +915,7 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    - cron: '0 0 */5 * *'
+    - cron: '0 0 */5 * *'  # Every 5 days — safely under 7-day threshold
   workflow_dispatch:
 
 jobs:
@@ -855,13 +943,13 @@ jobs:
       - name: Query a live table
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/candidate_profile?limit=1" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/business_profile?limit=1" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
           echo "Table query status: $STATUS"
 ```
 
-**Add secrets in GitHub:** Repository → Settings → Secrets and variables → Actions
+**GitHub Secrets to add** (Repository → Settings → Secrets → Actions):
 
 | Secret | Value |
 |---|---|
@@ -870,9 +958,9 @@ jobs:
 
 ---
 
-## 9. Keep-Alive: Local Push Timer
+## 10. Keep-Alive: Local Push Timer
 
-GitHub disables scheduled workflows on repos with **no push activity for 60 days**. This local systemd timer pushes a small commit every 30 days to prevent that.
+GitHub disables scheduled workflows on repos with **no push activity for 60 days**. This local systemd timer pushes a small commit every 30 days.
 
 ### The Script
 
@@ -881,7 +969,7 @@ GitHub disables scheduled workflows on repos with **no push activity for 60 days
 ```bash
 #!/bin/bash
 
-REPO="/path/to/your/repo"           # Update this
+REPO="/path/to/your/repo"           # ← Update this
 FILE="$REPO/keep_alive_count.txt"
 LOG="$HOME/.local/share/repo-keep-alive.log"
 
@@ -934,78 +1022,73 @@ Persistent=true
 WantedBy=timers.target
 ```
 
-`Persistent=true` means if the laptop was off when the timer should have fired, it runs immediately on next boot/wake.
+`Persistent=true` — if the machine was off when the timer should have fired, it runs immediately on next boot or wake-up.
 
 ### Enable It
 
 ```bash
 systemctl --user daemon-reload
 systemctl --user enable --now repo-keep-alive.timer
-
-# Verify
-systemctl --user status repo-keep-alive.timer
-
-# Test manually
-systemctl --user start repo-keep-alive.service
-
-# View logs
-cat ~/.local/share/repo-keep-alive.log
+systemctl --user status repo-keep-alive.timer      # verify active
+systemctl --user start repo-keep-alive.service     # test manually
+cat ~/.local/share/repo-keep-alive.log             # view log
 ```
 
-### Track the File in Git
-
-If `*.txt` is in `.gitignore`, add an exception:
+Track the file in git. If `*.txt` is in `.gitignore`:
 
 ```
 *.txt
 !keep_alive_count.txt
 ```
 
-Commit an empty `keep_alive_count.txt` initially so git tracks the file.
-
 ---
 
-## 10. Complete Checklist
+## 11. Complete Checklist
 
 ### Supabase Setup
-- [ ] Create Supabase project
+- [ ] Create Supabase project, save credentials
 - [ ] Disable email confirmation (Authentication → Providers → Email)
-- [ ] Run all 8 table SQL scripts in SQL Editor
+- [ ] Run all 8 table SQL scripts in SQL Editor (rename tables for your business)
 - [ ] Create `keep_alive()` SQL function
 - [ ] Enable RLS on all tables
-- [ ] Create public views (`candidate_profile_public`, `experiences_public`, `skills_public`)
+- [ ] Create public views that strip private/sensitive fields
 - [ ] Add `ANTHROPIC_API_KEY` to Edge Functions → Secrets
 
 ### Frontend Setup
-- [ ] Create `.env` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 - [ ] Install packages: `@supabase/supabase-js framer-motion react-markdown`
+- [ ] Create `.env` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 - [ ] Create `src/lib/supabaseClient.js`
-- [ ] Add `ChatInterface.jsx` to root of app
-- [ ] Customize suggested questions and opening message for your use case
+- [ ] Add `ChatInterface.jsx` to app root
+- [ ] Customize `SUGGESTED_QUESTIONS`, opening message, and header title for your business
+- [ ] Customize trigger button label ("Ask AI", "Ask a Question", "Get Help Now", etc.)
 
 ### Edge Function
-- [ ] Deploy with `supabase functions deploy chat`
+- [ ] Update table names in `Promise.all()` to match your business-specific names
+- [ ] Customize the opening persona paragraph in `buildSystemPrompt()` for your business type
+- [ ] Deploy: `supabase functions deploy chat`
 - [ ] Test: open chat, ask a question, verify response
 
 ### GitHub Actions
 - [ ] Commit and push `.github/workflows/keep_alive.yml`
+- [ ] Update table name in the third step to match your primary table
 - [ ] Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` to GitHub Secrets
-- [ ] Run workflow manually to verify all three steps return expected status codes
+- [ ] Run workflow manually to verify all three steps pass
 
 ### Local Keep-Alive Timer
-- [ ] Create `~/.local/bin/repo-keep-alive.sh` (update `REPO` path)
-- [ ] Create service and timer files in `~/.config/systemd/user/`
-- [ ] `chmod +x` the script
+- [ ] Update `REPO` path in `repo-keep-alive.sh`
+- [ ] Update `YOUR_USER` in the service file
+- [ ] Make script executable: `chmod +x ~/.local/bin/repo-keep-alive.sh`
+- [ ] Create service + timer files in `~/.config/systemd/user/`
 - [ ] `systemctl --user enable --now repo-keep-alive.timer`
-- [ ] Test manually with `systemctl --user start repo-keep-alive.service`
-- [ ] Verify `keep_alive_count.txt` is committed and in git
+- [ ] Test: `systemctl --user start repo-keep-alive.service`
+- [ ] Add `keep_alive_count.txt` to git, push
 
-### Content Population (in your Admin Panel)
-- [ ] Fill out `candidate_profile` — especially `career_narrative` and `elevator_pitch`
-- [ ] Add all experiences with **deep private context** — don't skip the `why_joined`/`why_left`/`challenges_faced` fields
-- [ ] Rate every skill honestly — put genuinely weak skills in `gap`, not `moderate`
-- [ ] Fill `gaps_weaknesses` — the AI can only be honest about gaps it knows about
-- [ ] Fill `values_culture` — what you need to thrive, what would make you miserable
+### Content Population
+- [ ] Fill `business_profile` — especially `main_pitch`, `full_story`, `ideal_for`, `not_ideal_for`
+- [ ] Add all services/offerings to `services` — include `private_notes` with honest context
+- [ ] Rate capabilities honestly — put genuine weaknesses in `gap`, not `moderate`
+- [ ] Fill `limitations` thoroughly — the AI can only be honest about what it knows
+- [ ] Fill `client_fit` — what works, what doesn't, dealbreakers
 - [ ] Pre-answer common questions in `faq_responses`
-- [ ] Add anti-sycophancy rules to `ai_instructions`
-- [ ] Test with questions where the honest answer is "no" and verify the AI says no
+- [ ] Add behavioral rules to `ai_instructions`
+- [ ] Test with questions where the honest answer is "no" — verify the AI says no
