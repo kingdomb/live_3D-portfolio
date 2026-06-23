@@ -16,7 +16,7 @@ User Browser (React)
                             ├── Rate limit check       → request_logs
                             ├── Fetch all context      → Promise.all([
                             │       business_profile, services, capabilities,
-                            │       limitations, client_fit,
+                            │       limitations, client_fit, testimonials,
                             │       faq_responses, ai_instructions ])
                             ├── buildSystemPrompt()
                             └── Claude API → return reply
@@ -37,6 +37,7 @@ Before touching any code, decide what your tables will be called and what goes i
 | `capabilities` | `skills` | `case_types` | `specialties` | `capabilities` |
 | `limitations` | `gaps_weaknesses` | `referral_types` | `out_of_scope` | `exclusions` |
 | `client_fit` | `values_culture` | `ideal_client` | `service_area` | `client_fit` |
+| `testimonials` | `testimonials` | `case_results` | `testimonials` | `testimonials` |
 | `faq_responses` | `faq_responses` | `faq_responses` | `faq_responses` | `faq_responses` |
 | `ai_instructions` | `ai_instructions` | `ai_instructions` | `ai_instructions` | `ai_instructions` |
 | `request_logs` | `request_logs` | `request_logs` | `request_logs` | `request_logs` |
@@ -102,6 +103,26 @@ This table makes the AI valuable. The AI can only be honest about limitations it
 | **Law firm** | Personal injury clients with clear liability, not complex corporate disputes |
 | **Plumber** | Residential homeowners in [zip codes], existing customers get priority |
 | **Cleaning** | Airbnb hosts needing turnover cleans, recurring residential clients |
+
+---
+
+### `testimonials` (social proof the AI can cite)
+
+The AI uses these when visitors ask "are you any good?", "do you have references?", or "can you share examples of your work?" This table is critical for service businesses where trust is the main buying factor.
+
+| Field | All business types |
+|---|---|
+| `client_name` | First name or "A client in [City]" for privacy |
+| `result_summary` | One sentence: what outcome did you deliver? |
+| `quote` | Their exact words or a paraphrase |
+| `service_type` | Which service this relates to |
+
+| Examples by type | |
+|---|---|
+| **Portfolio** | "Hired within 2 weeks of launch", "Recruiter said most prepared candidate they'd seen" |
+| **Law firm** | "Settled for $340K after initial offer of $40K", "Case dismissed after 3 months" |
+| **Plumber** | "Fixed emergency leak same day, saved hardwood floors", "Saved $3K vs. competitor quote" |
+| **Cleaning** | "5-star Airbnb reviews every week since starting service", "Never missed a turnover in 8 months" |
 
 ---
 
@@ -320,9 +341,27 @@ create table client_fit (
 
 ---
 
-### Table 6: `faq_responses`
+### Table 6: `testimonials`
 
-Pre-written answers to common questions. The AI uses these verbatim when the question matches.
+Social proof the AI can cite when visitors ask about results, references, or reliability. Critical for service businesses where trust drives the buying decision.
+
+```sql
+create table testimonials (
+  id uuid primary key default uuid_generate_v4(),
+  profile_id uuid references business_profile(id),
+  client_name text,          -- First name or "A client in [City]" for privacy
+  result_summary text,       -- One sentence: "Completed Airbnb turnover in 90 minutes"
+  quote text,                -- Their words, or a paraphrase
+  service_type text,         -- Which service this relates to
+  created_at timestamp default now()
+);
+```
+
+---
+
+### Table 7: `faq_responses`
+
+Pre-written answers to common questions. The AI uses these verbatim when a question matches.
 
 ```sql
 create table faq_responses (
@@ -389,6 +428,7 @@ alter table services enable row level security;
 alter table capabilities enable row level security;
 alter table limitations enable row level security;
 alter table client_fit enable row level security;
+alter table testimonials enable row level security;
 alter table faq_responses enable row level security;
 alter table ai_instructions enable row level security;
 alter table request_logs enable row level security;
@@ -415,6 +455,7 @@ create policy "Public read" on business_profile for select using (true);
 create policy "Public read" on services for select using (true);
 create policy "Public read" on capabilities for select using (true);
 create policy "Public read" on limitations for select using (true);
+create policy "Public read" on testimonials for select using (true);
 create policy "Public read" on faq_responses for select using (true);
 
 -- Authenticated admin has full access
@@ -496,6 +537,7 @@ serve(async (req) => {
       { data: capabilities },
       { data: limitations },
       { data: clientFit },
+      { data: testimonials },
       { data: faqs },
       { data: instructions }
     ] = await Promise.all([
@@ -504,12 +546,13 @@ serve(async (req) => {
       supabase.from('capabilities').select('*'),
       supabase.from('limitations').select('*'),
       supabase.from('client_fit').select('*').single(),
+      supabase.from('testimonials').select('*'),
       supabase.from('faq_responses').select('*'),
       supabase.from('ai_instructions').select('*').order('priority', { ascending: false })
     ])
 
     const systemPrompt = buildSystemPrompt(
-      profile, services, capabilities, limitations, clientFit, faqs, instructions
+      profile, services, capabilities, limitations, clientFit, testimonials, faqs, instructions
     )
 
     const response = await anthropic.messages.create({
@@ -535,7 +578,7 @@ serve(async (req) => {
   }
 })
 
-function buildSystemPrompt(profile, services, capabilities, limitations, clientFit, faqs, instructions) {
+function buildSystemPrompt(profile, services, capabilities, limitations, clientFit, testimonials, faqs, instructions) {
   // Customize this persona description for your business type.
   // Portfolio: "You are an AI agent for a job candidate named..."
   // Law firm: "You are an AI assistant for [Firm Name], a law firm specializing in..."
@@ -594,6 +637,9 @@ Not a fit for: ${clientFit?.not_a_fit_for || ''}
 Our working style: ${clientFit?.working_style || ''}
 Requirements: ${clientFit?.requirements || ''}
 Dealbreakers: ${clientFit?.dealbreakers || ''}
+
+## TESTIMONIALS & RESULTS
+${testimonials?.map(t => `- ${t.client_name}: "${t.quote}" (${t.service_type || 'General'}) — Result: ${t.result_summary}`).join('\n')}
 
 ## PRE-WRITTEN ANSWERS TO COMMON QUESTIONS
 ${faqs?.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n\n')}
@@ -1048,7 +1094,7 @@ Track the file in git. If `*.txt` is in `.gitignore`:
 ### Supabase Setup
 - [ ] Create Supabase project, save credentials
 - [ ] Disable email confirmation (Authentication → Providers → Email)
-- [ ] Run all 8 table SQL scripts in SQL Editor (rename tables for your business)
+- [ ] Run all 9 table SQL scripts in SQL Editor (rename tables for your business)
 - [ ] Create `keep_alive()` SQL function
 - [ ] Enable RLS on all tables
 - [ ] Create public views that strip private/sensitive fields
@@ -1089,6 +1135,7 @@ Track the file in git. If `*.txt` is in `.gitignore`:
 - [ ] Rate capabilities honestly — put genuine weaknesses in `gap`, not `moderate`
 - [ ] Fill `limitations` thoroughly — the AI can only be honest about what it knows
 - [ ] Fill `client_fit` — what works, what doesn't, dealbreakers
+- [ ] Add testimonials to `testimonials` — client name, result, quote, service type
 - [ ] Pre-answer common questions in `faq_responses`
 - [ ] Add behavioral rules to `ai_instructions`
 - [ ] Test with questions where the honest answer is "no" — verify the AI says no
