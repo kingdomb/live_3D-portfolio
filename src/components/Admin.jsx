@@ -23,6 +23,13 @@ export default function Admin() {
   // These were missing in your previous code:
   const [skills, setSkills] = useState([]);
   const [gaps, setGaps] = useState([]);
+  const [education, setEducation] = useState([]);
+  const [toast, setToast] = useState(null);
+
+  function showToast(message, isError = false) {
+    setToast({ message, isError });
+    setTimeout(() => setToast((t) => (t?.message === message ? null : t)), 3000);
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -67,6 +74,13 @@ export default function Admin() {
       .from('gaps_weaknesses')
       .select('*');
     if (gapData) setGaps(gapData);
+
+    // 5. Load Education
+    const { data: eduData } = await supabase
+      .from('education')
+      .select('*')
+      .order('display_order');
+    if (eduData) setEducation(eduData);
   }
 
   const handleLogin = async (e) => {
@@ -76,7 +90,7 @@ export default function Admin() {
       email,
       password,
     });
-    if (error) alert(error.message);
+    if (error) showToast(error.message, true);
     setLoading(false);
   };
 
@@ -87,8 +101,8 @@ export default function Admin() {
 
   const handleSaveProfile = async () => {
     const { error } = await supabase.from('candidate_profile').upsert(profile);
-    if (error) alert('Error saving profile: ' + error.message);
-    else alert('Profile saved!');
+    if (error) showToast('Error saving profile: ' + error.message, true);
+    else showToast('Profile saved!');
   };
 
   // --- EXPERIENCE HANDLERS ---
@@ -101,7 +115,7 @@ export default function Admin() {
       },
     ]);
     if (!error) fetchData();
-    else alert('Error adding row: ' + error.message);
+    else showToast('Error adding row: ' + error.message, true);
   };
 
   const handleUpdateExperience = (id, field, value) => {
@@ -117,9 +131,9 @@ export default function Admin() {
     try {
       const { error } = await supabase.from('experiences').upsert(experiences);
       if (error) throw error;
-      alert('All experiences saved!');
+      showToast('All experiences saved!');
     } catch (error) {
-      alert('Error saving experiences: ' + error.message);
+      showToast('Error saving experiences: ' + error.message, true);
     } finally {
       setLoading(false);
     }
@@ -129,7 +143,7 @@ export default function Admin() {
     if (!window.confirm('Are you sure you want to delete this job?')) return;
     const { error } = await supabase.from('experiences').delete().eq('id', id);
     if (error) {
-      alert('Error deleting: ' + error.message);
+      showToast('Error deleting: ' + error.message, true);
     } else {
       setExperiences((prev) => prev.filter((exp) => exp.id !== id));
     }
@@ -156,8 +170,18 @@ export default function Admin() {
 
   const handleSaveSkills = async () => {
     const { error } = await supabase.from('skills').upsert(skills);
-    if (error) alert('Error: ' + error.message);
-    else alert('Skills saved!');
+    if (error) showToast('Error: ' + error.message, true);
+    else showToast('Skills saved!');
+  };
+
+  const handleDeleteSkill = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this skill?')) return;
+    const { error } = await supabase.from('skills').delete().eq('id', id);
+    if (error) {
+      showToast('Error deleting: ' + error.message, true);
+    } else {
+      setSkills((prev) => prev.filter((s) => s.id !== id));
+    }
   };
 
   // --- GAPS HANDLERS ---
@@ -178,10 +202,58 @@ export default function Admin() {
     );
   };
 
+  const handleDeleteGap = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this gap?')) return;
+    const { error } = await supabase.from('gaps_weaknesses').delete().eq('id', id);
+    if (error) {
+      showToast('Error deleting: ' + error.message, true);
+    } else {
+      setGaps((prev) => prev.filter((g) => g.id !== id));
+    }
+  };
+
   const handleSaveGaps = async () => {
     const { error } = await supabase.from('gaps_weaknesses').upsert(gaps);
-    if (error) alert('Error: ' + error.message);
-    else alert('Gaps saved!');
+    if (error) showToast('Error: ' + error.message, true);
+    else showToast('Gaps saved!');
+  };
+
+  // --- EDUCATION HANDLERS ---
+  const handleAddEducation = async () => {
+    const { error } = await supabase.from('education').insert([
+      {
+        candidate_id: profile.id,
+        degree: 'New Degree',
+        field_of_study: '',
+        institution: '',
+        status: 'completed',
+        display_order: education.length,
+      },
+    ]);
+    if (!error) fetchData();
+    else showToast('Error adding row: ' + error.message, true);
+  };
+
+  const handleUpdateEducation = (id, field, value) => {
+    setEducation((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
+    );
+  };
+
+  const handleSaveEducation = async () => {
+    const { error } = await supabase.from('education').upsert(education);
+    if (error) showToast('Error saving education: ' + error.message, true);
+    else showToast('Education saved!');
+  };
+
+  const handleDeleteEducation = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this entry?')) return;
+    const { error } = await supabase.from('education').delete().eq('id', id);
+    if (error) {
+      showToast('Error deleting: ' + error.message, true);
+    } else {
+      setEducation((prev) => prev.filter((e) => e.id !== id));
+    }
   };
 
   // --- VIEW: LOGIN SCREEN ---
@@ -223,6 +295,15 @@ export default function Admin() {
   // --- VIEW: DATA ENTRY SCREEN ---
   return (
     <div className='min-h-screen bg-gray-900 text-gray-100 p-8'>
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg text-sm font-bold ${
+            toast.isError ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
       <div className='max-w-4xl mx-auto'>
         <div className='flex justify-between items-center mb-8'>
           <h1 className='text-3xl font-bold text-teal-400'>Control Panel</h1>
@@ -501,7 +582,7 @@ export default function Admin() {
               >
                 <div className='flex gap-2'>
                   <input
-                    className='bg-gray-700 p-2 rounded text-white flex-1 font-bold'
+                    className='bg-gray-700 p-2 rounded text-white flex-1 min-w-0 font-bold'
                     value={skill.skill_name}
                     onChange={(e) =>
                       handleUpdateSkill(skill.id, 'skill_name', e.target.value)
@@ -509,7 +590,7 @@ export default function Admin() {
                     placeholder='Skill Name (e.g. React)'
                   />
                   <select
-                    className='bg-gray-700 p-2 rounded text-white'
+                    className='bg-gray-700 p-2 rounded text-white shrink-0 w-40'
                     value={skill.category}
                     onChange={(e) =>
                       handleUpdateSkill(skill.id, 'category', e.target.value)
@@ -519,6 +600,12 @@ export default function Admin() {
                     <option value='moderate'>Moderate</option>
                     <option value='gap'>Weak/Gap</option>
                   </select>
+                  <button
+                    onClick={() => handleDeleteSkill(skill.id)}
+                    className='text-red-400 hover:text-red-200 text-sm font-bold bg-red-900/20 px-2 py-1 rounded border border-red-900/50 shrink-0'
+                  >
+                    🗑️
+                  </button>
                 </div>
                 <input
                   className='bg-gray-800 p-2 rounded text-sm text-gray-300 border border-gray-700'
@@ -560,14 +647,22 @@ export default function Admin() {
                 key={gap.id}
                 className='border border-amber-900/50 p-4 rounded bg-amber-950/10'
               >
-                <input
-                  className='w-full bg-gray-700 p-2 rounded text-white mb-2 font-bold'
-                  placeholder="Gap Type (e.g. 'No Java Experience')"
-                  value={gap.description}
-                  onChange={(e) =>
-                    handleUpdateGap(gap.id, 'description', e.target.value)
-                  }
-                />
+                <div className='flex justify-between items-start mb-2 gap-2'>
+                  <input
+                    className='flex-1 min-w-0 bg-gray-700 p-2 rounded text-white font-bold'
+                    placeholder="Gap Type (e.g. 'No Java Experience')"
+                    value={gap.description}
+                    onChange={(e) =>
+                      handleUpdateGap(gap.id, 'description', e.target.value)
+                    }
+                  />
+                  <button
+                    onClick={() => handleDeleteGap(gap.id)}
+                    className='text-red-400 hover:text-red-200 text-sm font-bold bg-red-900/20 px-2 py-1 rounded border border-red-900/50 shrink-0'
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
                 <textarea
                   className='w-full bg-gray-900 p-2 rounded text-sm text-gray-300 border border-gray-700'
                   placeholder='Why is this a gap? Be brutally honest.'
@@ -576,6 +671,159 @@ export default function Admin() {
                     handleUpdateGap(gap.id, 'why_its_a_gap', e.target.value)
                   }
                 />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 5. EDUCATION SECTION */}
+        <section className='bg-gray-800 p-6 rounded-lg mb-8 border border-gray-700'>
+          <div className='flex justify-between items-center mb-6'>
+            <h2 className='text-xl font-bold text-blue-400'>
+              5. Education
+            </h2>
+            <div className='flex gap-2'>
+              <button
+                onClick={handleSaveEducation}
+                className='bg-green-600 hover:bg-green-500 text-white px-4 py-1 rounded text-sm font-bold'
+              >
+                💾 Save Education
+              </button>
+              <button
+                onClick={handleAddEducation}
+                className='bg-blue-500 hover:bg-blue-400 text-black px-3 py-1 rounded text-sm'
+              >
+                + Add Degree
+              </button>
+            </div>
+          </div>
+          <div className='space-y-4'>
+            {education.map((edu) => (
+              <div
+                key={edu.id}
+                className='border border-blue-900/50 p-4 rounded bg-blue-950/10 relative'
+              >
+                <div className='flex justify-between items-start mb-4'>
+                  <span className='text-xs text-gray-500 font-mono'>
+                    ID: {edu.id.slice(0, 8)}...
+                  </span>
+                  <button
+                    onClick={() => handleDeleteEducation(edu.id)}
+                    className='text-red-400 hover:text-red-200 text-sm font-bold bg-red-900/20 px-2 py-1 rounded border border-red-900/50'
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <div>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Degree
+                    </label>
+                    <input
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      placeholder="e.g. 'Master of Science'"
+                      value={edu.degree || ''}
+                      onChange={(e) =>
+                        handleUpdateEducation(edu.id, 'degree', e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Field of Study
+                    </label>
+                    <input
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      placeholder="e.g. 'Software Engineering'"
+                      value={edu.field_of_study || ''}
+                      onChange={(e) =>
+                        handleUpdateEducation(
+                          edu.id,
+                          'field_of_study',
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Institution
+                    </label>
+                    <input
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      value={edu.institution || ''}
+                      onChange={(e) =>
+                        handleUpdateEducation(
+                          edu.id,
+                          'institution',
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Status
+                    </label>
+                    <select
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      value={edu.status || 'completed'}
+                      onChange={(e) =>
+                        handleUpdateEducation(edu.id, 'status', e.target.value)
+                      }
+                    >
+                      <option value='completed'>Completed</option>
+                      <option value='in_progress'>In Progress</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Start Year
+                    </label>
+                    <input
+                      type='number'
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      value={edu.start_year || ''}
+                      onChange={(e) =>
+                        handleUpdateEducation(
+                          edu.id,
+                          'start_year',
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Completion Year
+                    </label>
+                    <input
+                      type='number'
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      placeholder='Leave blank if in progress'
+                      value={edu.completion_year || ''}
+                      onChange={(e) =>
+                        handleUpdateEducation(
+                          edu.id,
+                          'completion_year',
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className='col-span-2'>
+                    <label className='text-xs text-gray-400 block mb-1'>
+                      Honors (optional)
+                    </label>
+                    <input
+                      className='w-full bg-gray-700 p-2 rounded text-white'
+                      value={edu.honors || ''}
+                      onChange={(e) =>
+                        handleUpdateEducation(edu.id, 'honors', e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
               </div>
             ))}
           </div>

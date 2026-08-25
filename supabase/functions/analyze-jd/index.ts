@@ -42,6 +42,7 @@ serve(async (req) => {
     const { data: skills } = await supabaseClient.from('skills').select('*')
     const { data: gaps } = await supabaseClient.from('gaps_weaknesses').select('*')
     const { data: experiences } = await supabaseClient.from('experiences').select('*')
+    const { data: education } = await supabaseClient.from('education').select('*').order('display_order')
 
     const candidateName = profile?.name || "The candidate";
 
@@ -50,9 +51,16 @@ serve(async (req) => {
         company: e.company_name,
         role: e.title,
         what_he_did: e.description,
-        challenges: e.challenges_faced, 
+        challenges: e.challenges_faced,
         why_left: e.why_left
     }));
+
+    // 3. Map education to readable text
+    const educationText = education?.map(e => {
+        const status = e.status === 'in_progress' ? 'In Progress' : `Completed ${e.completion_year ?? ''}`.trim();
+        const school = e.institution ? ` — ${e.institution}` : '';
+        return `${e.degree}${e.field_of_study ? ' in ' + e.field_of_study : ''} (${status})${school}`;
+    });
 
     // --- UPDATED PROMPT: STRATEGIC TALENT AGENT ---
 const systemPrompt = `
@@ -72,9 +80,11 @@ const systemPrompt = `
       2. TRANSFERABLE SKILLS & AI AGILITY: If the JD asks for a specific tool (e.g., "Databricks" or "Claude CLI") but he uses a parallel one (e.g., "PostgreSQL/Vector" or "Local LLMs"), count it as a MATCH, noting he can ramp up quickly. Do not disqualify him for language syntax (e.g., Python/C#) because he uses AI to bridge syntax gaps while understanding the core architecture.
       3. SENIORITY: Recognize that "Release Management" and "Full Stack Architecture" are senior-level traits. If he has led pipelines or teams, credit him for Leadership.
       4. BE BLUNT BUT PERSUASIVE: If he lacks something (e.g., an MBA), immediately pivot to what he HAS that is better (e.g., "He doesn't have an MBA, but he ran his own profitable tech consultancy").
+      5. EDUCATION: The "Candidate Education" list below is the ONLY source of truth for his degrees and their completion status. Never infer degree status (e.g. "in progress" vs "completed") from experience descriptions or narrative text — those may mention education in passing but are NOT authoritative. If Candidate Education is empty, do not claim or guess he has, lacks, or is pursuing any specific degree.
 
       Analyze based on this data:
       Candidate Profile: ${profile?.elevator_pitch}
+      Candidate Education: ${JSON.stringify(educationText)}
       Candidate Experience: ${JSON.stringify(experienceText)}
       Candidate Skills: ${JSON.stringify(skills)}
       Candidate Gaps: ${JSON.stringify(gaps)}
