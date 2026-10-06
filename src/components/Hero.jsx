@@ -19,8 +19,8 @@ const Hero = () => {
             Hi, I'm <span className='text-[#915EFF]'>Bernard</span>
           </h1>
           <p className={`${styles.heroSubText} mt-2 text-white-100`}>
-            Enterprise AI Strategist rebuilding organizational workflows
-            <br className='hidden sm:block' /> around resilience-first, multi-agent AI systems.
+            Delivery & Release Management leader building predictable release systems,
+            <br className='hidden sm:block' /> and the resilience-first multi-agent AI that runs inside them.
           </p>
         </div>
       </div>
