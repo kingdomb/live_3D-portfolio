@@ -130,50 +130,50 @@ const technologies = [
 
 const experiences = [
   {
-    title: 'Freelance Full-Stack Engineer / AI Architect',
+    title: 'Owner & Consulting AI Architect / Full-Stack Engineer',
     company_name: 'Major Media Group LLC',
     icon: freelance, // Ensure you have this import
     iconBg: '#ff7200', // You might want to update this color if needed
     date: 'Jan 2020 - Present',
     points: [
-      'Architected a resilience-first multi-agent system using Docker, Node.js, and Redis, implementing an asynchronous event-driven architecture.',
-      "Engineered a 'Shadow Mode' sandbox environment, allowing new AI models (Llama 3, Gemini 2.0) to run in parallel with live traffic for safe A/B testing.",
-      'Built Secure Retrieval-Augmented Generation (RAG) memory systems using PostgreSQL and pgvector, enforcing strict multi-tenant data isolation.',
-      'Developed a custom Chaos Engine middleware to inject artificial latency and faults, validating system resilience and backpressure management.',
-      'Delivered scalable full-stack web solutions, translating business needs into secure payment integrations and custom CMS platforms.',
-      'Led end-to-end delivery—from design and branding to hosting, domain setup, and digital marketing execution.',
+      'Architected a resilience-first multi-agent AI system on Docker, Node.js, and Redis with an asynchronous, event-driven architecture, built from requirements gathering through deployment for a law firm and deployed on Supabase.',
+      'Engineered a Shadow Mode sandbox that runs new AI models (Llama 3, Gemini 2.0) in parallel with live traffic for safe A/B testing.',
+      'Built secure Retrieval-Augmented Generation (RAG) memory on PostgreSQL and pgvector, with Row Level Security enforcing strict multi-tenant data isolation for confidential legal data.',
+      'Developed a custom Chaos Engine middleware that injects artificial latency and faults to validate resilience and backpressure management.',
+      'Own and run this fully remote consulting business, delivering full-stack web applications (Stripe and PayPal payments, custom CMS) end to end, on deadline, with high client satisfaction.',
+      'Run production deployments in off-peak windows (midnight to 4 AM).',
     ],
   },
   {
-    title: 'React Native Engineer / Software Release Manager',
+    title: 'Senior Software Release Manager / Senior React Native Engineer',
     company_name: 'Saia LTL Freight',
     icon: saia, // Ensure you have this import
     iconBg: '#ffffff',
     date: 'Nov 2020 - Mar 2023',
     points: [
-      'Directed end-to-end Release Management, ensuring risk mitigation, milestone delivery, and cross-functional coordination across enterprise systems.',
-      'Co-developed a React Native mobile app with Okta SSO for 5,000+ enterprise users, strengthening authentication and platform security.',
-      'Managed the full software lifecycle for Zebra (Android) handheld freight scanners, including feature development, debugging, and global deployment.',
-      'Engineered integrations for Samsara and CoPilot GPS systems, streamlining fleet tracking capabilities.',
-      'Enhanced Billing, Claims APIs, and Eligibility services, improving accuracy, interoperability, and performance.',
-      'Led Agile ceremonies, capacity planning, and backlog refinement, improving transparency and team throughput.',
-      'Collaborated with Security and Infrastructure stakeholders to align technical deliverables with regulatory requirements (DOT/FMCSA).',
-      'Oversaw QA, UAT, and pre-release validation, reducing post-release defects and improving production stability.',
+      'Sole Release Manager for the organization, owning 6+ simultaneous release pipelines.',
+      'Built the mobile release protocol from scratch on ITIL and ran the rollout, tracking crash rate, release frequency, and cycle time.',
+      'Ran ServiceNow RFCs (description, testing documentation, implementation instructions, approvals, rollback plans) and took releases to the change advisory board.',
+      'Led Sunday off-hours production deployments (off-peak for drivers), including one late-night emergency rollback of the City Driver services.',
+      'Ran mock deployments in staging (shared with UAT), then verified production with telemetry, mock devices tied to prod, and remote sessions on driver devices.',
+      'Defined Go/No-Go criteria, embedded quality gates in CI/CD (Azure DevOps, GitHub Actions), and ran readiness meetings, QA sign-offs, defect triage, and post-release retrospectives.',
+      'Co-developed a React Native app with Okta SSO for 5,000+ users and ran its iOS/Android release cycles through TestFlight and App Store Connect.',
+      'Drafted release notes, deployment checklists, known-issue lists, readiness checklists, and release calendars; wrote API data-flow documentation and visual training diagrams for drivers.',
+      'Managed the Zebra (Android) handheld scanner software lifecycle and engineered Samsara and CoPilot GPS integrations, with DOT/FMCSA compliance requirements and EDI (204, 210) part of the work.',
     ],
   },
   {
-    title: 'Product Manager / Sr. Dental Lab Tech',
+    title: 'Senior Dental Lab Technician / Product Manager',
     company_name: '3Sixty Dental (formerly 360 Imaging)',
     icon: threesixty, // Ensure you have this import
     iconBg: '#ff0000',
     date: 'Jan 2016 - Nov 2019',
     points: [
-      'Led a cross-functional team to launch Anatomical Guide™, delivering proprietary implant-planning software and CAD/CAM workflows in a HIPAA-regulated environment.',
-      'Streamlined dental lab processes, reducing turnaround times by 20% through optimized workflows and resource allocation.',
-      'Developed a vendor on-boarding tool, cutting annual costs by 25% and improving communication across teams.',
-      'Improved quality control for patient-specific implants, reducing clinical errors by 30%.',
+      'Led a cross-functional team through R&D and many prototype iterations to the final design of Anatomical Guide™, a first-of-its-kind physical dental implant surgical guide.',
+      'Owned field delivery of the proprietary implant-planning software to client dental offices (training, go-to-market) in a HIPAA-compliant setting; the software handled patient PII.',
+      'Developed lab SOP data sheets, streamlined processes (20% faster turnaround), built a vendor on-boarding tool (25% annual cost reduction), and cut clinical errors by 30%.',
       'Reduced material waste by 30% in CAD/CAM milling, improving prosthetic precision.',
-      'Ensured regulatory compliance, including MSDS documentation, for patient-specific medical devices.',
+      'Maintained MSDS documentation for patient-specific medical devices.',
     ],
   },
 ];
