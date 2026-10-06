@@ -47,18 +47,19 @@ const About = () => {
         variants={fadeIn('', '', 0.1, 1)}
         className='mt-4 text-secondary text-[17px] max-w-3xl leading-[30px] lg:mx-auto'
       >
-        I am a Master's-level Software Engineer and Enterprise AI Strategist, specializing in
-        rebuilding organizational workflows around agentic AI and autonomous execution.
+        I'm a Master's-level Software Engineer and Certified Scrum Master who runs software
+        releases for a living. At Saia I was the only release manager for the whole
+        organization, running six or more release pipelines at once. I built the mobile release
+        protocol from scratch on ITIL and ran its rollout.
         <br /><br />
-        My career is built at the intersection of complex systems engineering and highly
-        regulated environments. Before architecting enterprise AI platforms, I managed
-        mission-critical software releases in the freight industry and launched physical
-        medical devices in the dental space. I know what it takes to ship products that cannot fail.
+        Before that, I delivered proprietary dental implant-planning software into client dental
+        offices under HIPAA, and led the R&D behind a first-of-its-kind surgical guide. I know
+        what it takes to ship things that cannot fail.
         <br /><br />
-        Today, my focus is entirely on AI leadership and architecture. I build resilience-first,
-        multi-agent systems that operate safely in production. I don't just implement AI as a
-        novelty; I treat it as digital labor, engineering the oversight, security, and enterprise
-        context required to solve real business bottlenecks and drive massive efficiency.
+        I also architect enterprise AI. I build resilience-first, multi-agent systems and the
+        guardrails around them: shadow testing, fault injection, strict data isolation, and human
+        approval before anything goes live. Release discipline and AI architecture are the same
+        job, done safely.
       </motion.p>
       <div className='mt-20 grid gap-10 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 place-items-center'>
         {services.map((service, index) => (
