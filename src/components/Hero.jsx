@@ -20,7 +20,7 @@ const Hero = () => {
           </h1>
           <p className={`${styles.heroSubText} mt-2 text-white-100`}>
             Delivery & Release Management leader building predictable release systems,
-            <br className='hidden sm:block' /> and the resilience-first multi-agent AI that runs inside them.
+            and the resilience-first multi-agent AI that runs inside them.
           </p>
         </div>
       </div>
