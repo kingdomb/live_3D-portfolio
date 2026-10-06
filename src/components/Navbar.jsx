@@ -90,10 +90,11 @@ const Navbar = () => {
           <img src={logo} alt='logo' className='w-9 h-9 pb-2 object-contain' />
           <p className='text-white text-[18px] font-bold cursor-pointer flex '>
             Bernard &nbsp;
-            <span className='xl:block hidden'>
+            <span className='lg:block hidden'>
               {' '}
-              | Enterprise AI Strategist & Architect
+              | Delivery & Release Management | Enterprise AI Strategist & Architect
             </span>
+            <span className='lg:hidden block'>| Release Mgmt & AI</span>
           </p>
         </Link>
 
