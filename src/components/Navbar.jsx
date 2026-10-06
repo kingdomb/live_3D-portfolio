@@ -78,7 +78,7 @@ const Navbar = () => {
         scrolled ? 'bg-primary' : 'bg-transparent'
       }`}
     >
-      <div className='w-full flex justify-between items-center max-w-7xl mx-auto'>
+      <div className='w-full flex justify-between items-center gap-4 max-w-7xl mx-auto'>
         <Link
           to='/'
           className='flex items-center gap-2'
@@ -90,11 +90,11 @@ const Navbar = () => {
           <img src={logo} alt='logo' className='w-9 h-9 pb-2 object-contain' />
           <p className='text-white text-[18px] font-bold cursor-pointer flex '>
             Bernard &nbsp;
-            <span className='lg:block hidden'>
+            <span className='xl:block hidden'>
               {' '}
               | Delivery & Release Management | Enterprise AI Strategist & Architect
             </span>
-            <span className='lg:hidden block'>| Release Mgmt & AI</span>
+            <span className='xl:hidden block whitespace-nowrap lg:text-[16px]'>| Release Mgmt & AI</span>
           </p>
         </Link>
 
