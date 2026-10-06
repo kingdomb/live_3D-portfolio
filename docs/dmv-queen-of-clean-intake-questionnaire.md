@@ -247,12 +247,22 @@ For each question below, write the answer exactly as you'd want the AI to say it
     Your answer:
 
 55. **Any other questions you get asked all the time that aren't listed above?**
-    Question:
-    Answer:
+    Question: What type of cleaning products do you use? 
+    Answer: We use environmentally friendly cleaning products that are safe to use around children and pets. We also offer a fragrance-free option for those with sensitivities.
 
-    Question:
-    Answer:
+    Question: Are your cleaning chemicals safe to use around children and pets?
+    Answer: Yes, our cleaning chemicals are safe to use around children and pets. 
 
+    Question: Can I request a walkthrough before a cleaning?
+    Answer: Yes, we offer free walkthroughs for all of our clients. 
+
+    Question: Can I request a specific cleaner for my cleaning?
+    Answer: We do our best to accommodate all requests for specific cleaners, but we cannot guarantee that your preferred cleaner will be available. 
+    
+    Question: Can I request a specific cleaning chemical?
+    Answer: We do our best to accommodate all requests for specific chemicals, but we cannot guarantee that your preferred chemical will be available. 
+
+    
 ---
 
 ## SECTION 6 — Testimonials & Results
@@ -291,7 +301,7 @@ For each testimonial, give us:
 
 These instructions tell the AI how to handle specific situations. Answer in plain English.
 
-60. When someone asks about pricing, what should the AI always say or mention? (e.g., "Always mention that we give free quotes", "Always explain that pricing depends on home size")
+60. When someone asks about pricing, what should the AI always say or mention? (e.g., "Always mention that we give free quotes", "Always explain that pricing depends on home size", "Always mention that they can upload photos of their home for a more accurate quote via the contact form, text, or here in the chat.")
 
 61. Is there anything the AI should NEVER say or commit to? (e.g., "Never give a firm price without a walkthrough", "Never promise same-day availability")
 
