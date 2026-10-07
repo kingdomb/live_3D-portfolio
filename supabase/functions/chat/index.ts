@@ -46,8 +46,38 @@ serve(async (req) => {
     const { data: profile } = await supabaseClient.from('candidate_profile').select('*').single()
     const { data: experiences } = await supabaseClient.from('experiences').select('*')
     const { data: skills } = await supabaseClient.from('skills').select('*')
+    const { data: gaps } = await supabaseClient.from('gaps_weaknesses').select('*')
+    const { data: education } = await supabaseClient.from('education').select('*').order('display_order')
 
     const candidateName = profile?.name || "Bernard";
+
+    // Only send the fields the model needs (no ids, timestamps, email, or salary)
+    const experienceText = (experiences ?? []).map(e => ({
+        company: e.company_name,
+        role: e.title,
+        dates: e.start_date ? `${e.start_date} to ${e.end_date ?? 'Present'}` : null,
+        duties: e.description,
+        ...(e.bullet_points ? { bullets: e.bullet_points } : {}),
+        challenges: e.challenges_faced,
+        why_left: e.why_left
+    }));
+
+    const skillsText = (skills ?? []).map(s => ({
+        skill: s.skill_name,
+        category: s.category,
+        notes: s.honest_notes
+    }));
+
+    const gapsText = (gaps ?? []).map(g => ({
+        gap: g.description,
+        why_its_a_gap: g.why_its_a_gap
+    }));
+
+    const educationText = (education ?? []).map(e => {
+        const status = e.status === 'in_progress' ? 'In Progress' : `Completed ${e.completion_year ?? ''}`.trim();
+        const school = e.institution ? ` — ${e.institution}` : '';
+        return `${e.degree}${e.field_of_study ? ' in ' + e.field_of_study : ''} (${status})${school}`;
+    });
 
     // 2. Build Prompt (Third Person Perspective)
     const systemPrompt = `
@@ -62,15 +92,13 @@ serve(async (req) => {
       FACT RULES: Use only the data below. If something is not in the data, say "${candidateName}'s records don't mention that." Do not add frequencies or superlatives (daily, weekly, always, zero downtime) except what the data states: he uses Claude Code and Gemini daily. Do not say he has never done something unless the data says so. The Anatomical Guide is a physical dental surgical guide, not software. Do not claim GitHub Copilot, Cursor, Jira administration, Tableau, Power BI, or Looker experience. Do not speculate about what he would do or how fast he would learn something.
 
       Here is ${candidateName}'s background data:
-      - Bio: ${profile?.elevator_pitch}
-      - Experience: ${JSON.stringify((experiences ?? []).map(e => ({
-          company: e.company_name,
-          role: e.title,
-          duties: e.description,        
-          challenges: e.challenges_faced, 
-          why_left: e.why_left          
-      })))} 
-      - Skills: ${JSON.stringify(skills)}
+      - Title: ${profile?.title ?? ''}
+      - Target Titles: ${JSON.stringify(profile?.target_titles ?? [])}
+      - Bio: ${profile?.elevator_pitch ?? ''}
+      - Education: ${JSON.stringify(educationText)}
+      - Experience: ${JSON.stringify(experienceText)}
+      - Skills: ${JSON.stringify(skillsText)}
+      - Gaps & Weaknesses: ${JSON.stringify(gapsText)}
 
       Tone: Professional, honest, and direct, pleasant, and positive. If the answer isn't in the data, say "${candidateName}'s records don't mention that."
     `
