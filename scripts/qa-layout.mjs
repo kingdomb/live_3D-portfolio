@@ -21,6 +21,13 @@ const MENU_WIDTHS = [360, 390];
 const TOP_BUTTON_WIDTHS = [390, 1280];
 const OUT = process.env.QA_OUT || 'docs/qa';
 const TOGGLE = 'nav button[aria-controls="mobile-menu"]';
+const LAUNCHER = 'button[aria-label="Ask AI About Bernard"]';
+const SM = 640;
+const LAUNCHER_SHOT_WIDTHS = [320, 390, 768, 1280];
+const CHAT_PANEL_SHOT_WIDTHS = [320, 360, 390];
+// Gap between two boxes (0 if they overlap).
+const boxGap = (a, b) => Math.max(0, a.left - b.right, b.left - a.right, a.top - b.bottom, b.top - a.bottom);
+const overlaps = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
 // Every route in src/App.jsx (relative to the Vite base path).
 const ROUTES = [
   { name: '/', path: '' },
@@ -108,8 +115,7 @@ async function overflowAudit(page, width, label) {
   record('scrolled to bottom', await page.evaluate(overflowProbe));
 }
 
-const openChatPanel = (page) =>
-  page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.textContent.includes('🤖')).click());
+const openChatPanel = (page) => page.click(LAUNCHER);
 
 // Collects every number the assertions need in one pass inside the page.
 const measure = () => {
@@ -239,6 +245,38 @@ async function runWidth(width) {
 
   await page.screenshot({ path: `${OUT}/navbar-${width}.png`, clip: { x: 0, y: 0, width, height: 300 } });
 
+  // Floating chat launcher: size per breakpoint, tap target, spacing from scroll-to-top,
+  // margin inside the viewport, and not covering the nav or hero text at the top of the page.
+  {
+    const L = await page.evaluate(() => {
+      const box = (e) => (({ left, right, top, bottom, width, height }) => ({ left, right, top, bottom, width, height }))(e.getBoundingClientRect());
+      const btn = document.querySelector('button[aria-label="Ask AI About Bernard"]');
+      const label = [...btn.querySelectorAll('span')].filter((s) => s.checkVisibility() && !s.getAttribute('aria-hidden')).map((s) => s.textContent).join('');
+      const h1 = document.querySelector('h1');
+      return {
+        launcher: box(btn), label,
+        top: box(document.querySelector('button[aria-label="Scroll to Top"]')),
+        nav: box(document.querySelector('nav')),
+        heroText: [box(h1), box(h1.nextElementSibling)],
+        vw: window.innerWidth, vh: window.innerHeight,
+      };
+    });
+    const l = L.launcher;
+    const r1 = (n) => Math.round(n * 10) / 10;
+    let sizeOk;
+    if (width < SM) sizeOk = Math.abs(l.width - 48) <= 1 && Math.abs(l.height - 48) <= 1 && L.label === '';
+    else if (width < LG) sizeOk = Math.abs(l.height - 48) <= 1 && l.width <= 140 && L.label === 'Ask AI';
+    else sizeOk = Math.abs(l.height - 48) <= 1 && l.width <= 240 && L.label === 'Ask AI About Bernard';
+    check(width, sizeOk, 'launcher size for breakpoint', `${r1(l.width)}x${r1(l.height)} label "${L.label}"`);
+    check(width, l.width >= 44 && l.height >= 44, 'launcher tap target >= 44x44', `${l.width}x${l.height}`);
+    const gapTop = boxGap(l, L.top);
+    check(width, gapTop >= 12, 'launcher >= 12px from scroll-to-top', `gap ${gapTop}`);
+    const margin = Math.min(l.left, L.vw - l.right, l.top, L.vh - l.bottom);
+    check(width, margin >= 16, 'launcher >= 16px inside viewport', `margin ${margin}`);
+    check(width, !overlaps(l, L.nav) && !L.heroText.some((t) => overlaps(l, t)), 'launcher clear of nav and hero text', JSON.stringify(L));
+    say(`[${width}] launcher ${r1(l.width)}x${r1(l.height)} at ${r1(l.left)},${r1(l.top)} label "${L.label}" | gap to scroll-to-top ${r1(gapTop)}px | viewport margin ${r1(margin)}px`);
+  }
+
   // Mobile menu: open, check the dropdown is fully on screen, click a link.
   if (MENU_WIDTHS.includes(width)) {
     await page.click(TOGGLE);
@@ -302,7 +340,7 @@ async function runWidth(width) {
     const fab = await page.evaluate(() => {
       const box = (e) => (e ? (({ left, right, top, bottom }) => ({ left, right, top, bottom }))(e.getBoundingClientRect()) : null);
       const top = document.querySelector('button[aria-label="Scroll to Top"]');
-      const chat = [...document.querySelectorAll('button')].find((b) => b.textContent.includes('🤖'));
+      const chat = document.querySelector('button[aria-label="Ask AI About Bernard"]');
       return { top: { opacity: getComputedStyle(top).opacity, ...box(top) }, chat: chat ? { visible: chat.checkVisibility(), ...box(chat) } : null };
     });
     const inView = (b) => b && b.left >= 0 && b.right <= width && b.top >= 0 && b.bottom <= HEIGHT;
@@ -317,6 +355,43 @@ async function runWidth(width) {
     say(`[${width}] floating buttons ${JSON.stringify(fab)} | scrollY after scroll-to-top click ${scrollY}`);
   }
   await page.close();
+
+  // Chat panel: fits inside the viewport, close control reachable and working.
+  {
+    const p = await openPage(width);
+    if (LAUNCHER_SHOT_WIDTHS.includes(width)) {
+      // Scrolled so the scroll-to-top button shows next to the launcher.
+      await p.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
+      await p
+        .waitForFunction(() => getComputedStyle(document.querySelector('button[aria-label="Scroll to Top"]')).opacity === '1', null, { timeout: 3000 })
+        .catch(() => {});
+      await p.screenshot({ path: `${OUT}/launcher-${width}.png` });
+      await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await p.waitForTimeout(300);
+    }
+    await openChatPanel(p);
+    await p.waitForTimeout(800);
+    const panel = await p.evaluate(() => {
+      const h = [...document.querySelectorAll('h3')].find((e) => e.textContent.includes("Bernard's Agent"));
+      const el = h.closest('.fixed');
+      const close = [...el.querySelectorAll('button')].find((b) => b.textContent.includes('✕'));
+      const box = (e) => (({ left, right, top, bottom }) => ({ left, right, top, bottom }))(e.getBoundingClientRect());
+      const send = el.querySelector('form button[type="submit"]');
+      return { panel: box(el), close: box(close), send: box(send), vw: window.innerWidth, vh: window.innerHeight, scrollWidth: document.scrollingElement.scrollWidth };
+    });
+    const inside = (b) => b.left >= 0 && b.right <= panel.vw && b.top >= 0 && b.bottom <= panel.vh;
+    check(width, inside(panel.panel) && panel.scrollWidth <= panel.vw, 'chat panel inside viewport', JSON.stringify(panel));
+    check(width, inside(panel.close), 'chat close button inside viewport', JSON.stringify(panel.close));
+    const inPanel = (b) => b.left >= panel.panel.left && b.right <= panel.panel.right && b.top >= panel.panel.top && b.bottom <= panel.panel.bottom;
+    check(width, inPanel(panel.send) && panel.send.right - panel.send.left > 0, 'chat send button inside panel', JSON.stringify({ send: panel.send, panel: panel.panel }));
+    if (CHAT_PANEL_SHOT_WIDTHS.includes(width)) await p.screenshot({ path: `${OUT}/chat-panel-${width}.png` });
+    await p.click('h3:has-text("Bernard\'s Agent") >> xpath=../.. >> button:has-text("✕")');
+    await p.waitForTimeout(600);
+    const closed = await p.evaluate(() => ![...document.querySelectorAll('h3')].some((e) => e.textContent.includes("Bernard's Agent")));
+    check(width, closed, 'chat close button closes panel', 'panel still open');
+    say(`[${width}] chat panel ${JSON.stringify(panel.panel)} close ${JSON.stringify(panel.close)} send ${JSON.stringify(panel.send)} closed after click: ${closed}`);
+    await p.close();
+  }
 
   // Whole-page overflow: every route, then the home page with the mobile menu open and with the chat panel open.
   for (const route of ROUTES) {

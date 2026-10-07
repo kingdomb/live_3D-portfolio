@@ -64,16 +64,19 @@ export default function ChatInterface() {
   return (
     <>
       {/* 1. THE FLOATING BUBBLE BUTTON */}
+      {/* 48px icon-only circle below sm, "Ask AI" pill to lg, full label (width capped) from lg */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-24 right-6 z-50 p-4 rounded-full shadow-2xl flex items-center gap-2 transition-all ${
+        aria-label='Ask AI About Bernard'
+        className={`fixed bottom-24 right-6 z-50 h-12 min-w-[48px] lg:max-w-[240px] justify-center sm:px-4 rounded-full shadow-2xl flex items-center gap-2 transition-all ${
           isOpen ? 'hidden' : 'bg-teal-500 text-black'
         }`}
       >
-        <span className='text-2xl'>🤖</span>
-        <span className='font-bold hidden md:inline'>Ask AI About Bernard</span>
+        <span className='text-2xl leading-none' aria-hidden='true'>🤖</span>
+        <span className='font-bold text-sm hidden sm:inline lg:hidden'>Ask AI</span>
+        <span className='font-bold text-sm hidden lg:inline truncate'>Ask AI About Bernard</span>
       </motion.button>
 
       {/* 2. THE CHAT WINDOW OVERLAY */}
@@ -83,7 +86,7 @@ export default function ChatInterface() {
             initial={{ opacity: 0, y: 100, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
-            className='fixed bottom-6 right-6 z-50 w-full max-w-[380px] h-[500px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden'
+            className='fixed bottom-6 right-6 z-50 w-[calc(100vw-3rem)] max-w-[380px] h-[500px] max-h-[calc(100dvh-3rem)] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden'
           >
             {/* Header */}
             <div className='bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700'>
@@ -168,7 +171,7 @@ export default function ChatInterface() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder='Ask a question...'
-                  className='flex-1 bg-gray-900 text-white border border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-500'
+                  className='flex-1 min-w-0 bg-gray-900 text-white border border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-500'
                 />
                 <button
                   type='submit'
