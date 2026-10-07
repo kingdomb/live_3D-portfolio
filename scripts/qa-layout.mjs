@@ -5,6 +5,7 @@
 //   npm run qa                            # builds, serves, runs this script, stops the server
 //   QA_URL=http://127.0.0.1:4173/live_3D-portfolio/ node scripts/qa-layout.mjs   # against a running server
 //   QA_WIDTHS=500,1100 QA_OUT=/tmp/qa node scripts/qa-layout.mjs   # extra between-breakpoint sweep
+//   QA_SELFTEST_OVERFLOW=1 ...            # injects a 2000px element; the overflow checks must FAIL
 //
 // Exits non-zero if any assertion fails.
 import { chromium } from 'playwright';
@@ -19,6 +20,11 @@ const LG = 1024;
 const MENU_WIDTHS = [360, 390];
 const TOP_BUTTON_WIDTHS = [390, 1280];
 const OUT = process.env.QA_OUT || 'docs/qa';
+// Every route in src/App.jsx (relative to the Vite base path).
+const ROUTES = [
+  { name: '/', path: '' },
+  { name: '/admin', path: 'admin' },
+];
 
 mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
@@ -47,6 +53,62 @@ async function openPage(width) {
   await page.waitForTimeout(1500);
   return page;
 }
+
+// Horizontal-overflow probe: page scroll width plus every visible element whose
+// right edge passes the viewport, unless an ancestor clips overflow on purpose
+// (overflow-x hidden/auto/scroll/clip) or it is the three.js canvas.
+const overflowProbe = () => {
+  const vw = window.innerWidth;
+  const clipped = (el) => {
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      if (getComputedStyle(p).overflowX !== 'visible') return true;
+    }
+    return false;
+  };
+  const offenders = [];
+  for (const el of document.body.querySelectorAll('*')) {
+    if (el.tagName === 'CANVAS' || el.closest('canvas')) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0 || r.right <= vw + 1) continue;
+    if (!el.checkVisibility() || clipped(el)) continue;
+    offenders.push(`${el.tagName.toLowerCase()}.${String(el.className).trim().split(/\s+/).slice(0, 6).join('.')} w=${Math.round(r.width)} right=${Math.round(r.right)}`);
+  }
+  return { scrollWidth: document.scrollingElement.scrollWidth, innerWidth: vw, offenders };
+};
+
+// Runs the overflow probe at the top, then scrolls to the bottom in steps (so lazy
+// and animated sections render) and probes again.
+async function overflowAudit(page, width, label) {
+  const record = (where, o) => {
+    const ok = o.scrollWidth <= o.innerWidth;
+    check(width, ok, `${label}: no overflow (${where})`, `scrollWidth ${o.scrollWidth} > ${o.innerWidth}`);
+    check(width, o.offenders.length === 0, `${label}: no offending elements (${where})`, o.offenders.slice(0, 8).join(' ; '));
+    if (o.offenders.length) say(`[${width}] ${label} offenders (${where}): ${o.offenders.slice(0, 8).join(' ; ')}`);
+  };
+  if (process.env.QA_SELFTEST_OVERFLOW) {
+    // Self-test: inject a too-wide element so the audit must fail.
+    await page.evaluate(() => {
+      const d = document.createElement('div');
+      d.className = 'qa-selftest-wide';
+      d.style.cssText = 'width:2000px;height:10px';
+      document.getElementById('root').appendChild(d);
+    });
+  }
+  record('top', await page.evaluate(overflowProbe));
+  await page.evaluate(async () => {
+    const step = window.innerHeight * 0.8;
+    for (let y = 0; y < document.scrollingElement.scrollHeight; y += step) {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    window.scrollTo({ top: document.scrollingElement.scrollHeight, behavior: 'instant' });
+    await new Promise((r) => setTimeout(r, 500));
+  });
+  record('scrolled to bottom', await page.evaluate(overflowProbe));
+}
+
+const openChatPanel = (page) =>
+  page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.textContent.includes('🤖')).click());
 
 // Collects every number the assertions need in one pass inside the page.
 const measure = () => {
@@ -217,6 +279,31 @@ for (const width of WIDTHS) {
     say(`[${width}] floating buttons ${JSON.stringify(fab)} | scrollY after scroll-to-top click ${scrollY}`);
   }
   await page.close();
+
+  // Whole-page overflow: every route, then the home page with the mobile menu open and with the chat panel open.
+  for (const route of ROUTES) {
+    const p = await browser.newPage({ viewport: { width, height: HEIGHT } });
+    await p.goto(URL + route.path, { waitUntil: 'load' });
+    await p.waitForSelector('#root *');
+    await p.evaluate(() => document.fonts.ready);
+    await p.waitForTimeout(route.path ? 800 : 1500);
+    await overflowAudit(p, width, `route ${route.name}`);
+    await p.close();
+  }
+  if (width < LG) {
+    const p = await openPage(width);
+    await p.click('img[alt="menu"]');
+    await p.waitForTimeout(300);
+    await overflowAudit(p, width, 'menu open');
+    await p.close();
+  }
+  {
+    const p = await openPage(width);
+    await openChatPanel(p);
+    await p.waitForTimeout(800);
+    await overflowAudit(p, width, 'chat panel open');
+    await p.close();
+  }
 }
 
 await browser.close();
