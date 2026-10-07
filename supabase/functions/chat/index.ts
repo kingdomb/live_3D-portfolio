@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import Anthropic from "https://esm.sh/@anthropic-ai/sdk"
+import { serve } from "std/http/server.ts"
+import { createClient } from "@supabase/supabase-js"
+import Anthropic from "@anthropic-ai/sdk"
 
 // FIX: Define headers here instead of importing them
 const corsHeaders = {
@@ -58,7 +58,7 @@ serve(async (req) => {
       
       Here is ${candidateName}'s background data:
       - Bio: ${profile?.elevator_pitch}
-      - Experience: ${JSON.stringify(experiences.map(e => ({
+      - Experience: ${JSON.stringify((experiences ?? []).map(e => ({
           company: e.company_name,
           role: e.title,
           duties: e.description,        
@@ -86,7 +86,8 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : String(error)
+    return new Response(JSON.stringify({ error: message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }

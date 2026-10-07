@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import Anthropic from "https://esm.sh/@anthropic-ai/sdk"
+import { serve } from "std/http/server.ts"
+import { createClient } from "@supabase/supabase-js"
+import Anthropic from "@anthropic-ai/sdk"
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! })
 const corsHeaders = {
@@ -142,7 +142,8 @@ const systemPrompt = `
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : String(error)
+    return new Response(JSON.stringify({ error: message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
