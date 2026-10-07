@@ -96,7 +96,7 @@ const systemPrompt = `
       - Do not be a literal keyword matcher. Look for underlying competency.
 
       CRITICAL CONTEXT:
-      - "Major Media Group LLC" is ${candidateName}'s own business. He is the owner. He manages P&L, sales, client acquisition, and strategy. This COUNTS as "Business Ownership", "Entrepreneurial Experience", and client-facing leadership.
+      - "Major Media Group LLC" is ${candidateName}'s own business. He is the owner-operator and handles sales, client acquisition, delivery, and strategy himself. This COUNTS as "Business Ownership", "Entrepreneurial Experience", and client-facing leadership.
       - He uses "Local LLMs" and "AI Agent Orchestration" daily. This COUNTS as "AI-Native Workflow".
       
       EVALUATION RULES:
