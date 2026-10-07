@@ -64,19 +64,19 @@ export default function ChatInterface() {
   return (
     <>
       {/* 1. THE FLOATING BUBBLE BUTTON */}
-      {/* 48px icon-only circle below sm, "Ask AI" pill to lg, full label (width capped) from lg */}
+      {/* 48px icon-only circle up to 1579px; full label pill (width capped) from 1580px.
+          1580px is deliberately off the Tailwind breakpoint scale (owner's request). */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
         aria-label='Ask AI About Bernard'
-        className={`fixed bottom-24 right-6 z-50 h-12 min-w-[48px] lg:max-w-[240px] justify-center sm:px-4 rounded-full shadow-2xl flex items-center gap-2 transition-all ${
+        className={`fixed bottom-24 right-6 z-50 h-12 min-w-[48px] max-w-[240px] justify-center min-[1580px]:px-4 rounded-full shadow-2xl flex items-center gap-2 transition-all ${
           isOpen ? 'hidden' : 'bg-teal-500 text-black'
         }`}
       >
         <span className='text-2xl leading-none' aria-hidden='true'>🤖</span>
-        <span className='font-bold text-sm hidden sm:inline lg:hidden'>Ask AI</span>
-        <span className='font-bold text-sm hidden lg:inline truncate'>Ask AI About Bernard</span>
+        <span className='font-bold text-sm hidden min-[1580px]:inline truncate'>Ask AI About Bernard</span>
       </motion.button>
 
       {/* 2. THE CHAT WINDOW OVERLAY */}

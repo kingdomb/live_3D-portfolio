@@ -22,8 +22,8 @@ const TOP_BUTTON_WIDTHS = [390, 1280];
 const OUT = process.env.QA_OUT || 'docs/qa';
 const TOGGLE = 'nav button[aria-controls="mobile-menu"]';
 const LAUNCHER = 'button[aria-label="Ask AI About Bernard"]';
-const SM = 640;
-const LAUNCHER_SHOT_WIDTHS = [320, 390, 768, 1280];
+const LAUNCHER_PILL_MIN = 1580; // launcher is icon-only below this width
+const LAUNCHER_SHOT_WIDTHS = [320, 390, 768, 1280, 1920];
 const CHAT_PANEL_SHOT_WIDTHS = [320, 360, 390];
 // Gap between two boxes (0 if they overlap).
 const boxGap = (a, b) => Math.max(0, a.left - b.right, b.left - a.right, a.top - b.bottom, b.top - a.bottom);
@@ -264,8 +264,7 @@ async function runWidth(width) {
     const l = L.launcher;
     const r1 = (n) => Math.round(n * 10) / 10;
     let sizeOk;
-    if (width < SM) sizeOk = Math.abs(l.width - 48) <= 1 && Math.abs(l.height - 48) <= 1 && L.label === '';
-    else if (width < LG) sizeOk = Math.abs(l.height - 48) <= 1 && l.width <= 140 && L.label === 'Ask AI';
+    if (width < LAUNCHER_PILL_MIN) sizeOk = Math.abs(l.width - 48) <= 1 && Math.abs(l.height - 48) <= 1 && L.label === '';
     else sizeOk = Math.abs(l.height - 48) <= 1 && l.width <= 240 && L.label === 'Ask AI About Bernard';
     check(width, sizeOk, 'launcher size for breakpoint', `${r1(l.width)}x${r1(l.height)} label "${L.label}"`);
     check(width, l.width >= 44 && l.height >= 44, 'launcher tap target >= 44x44', `${l.width}x${l.height}`);
