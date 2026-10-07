@@ -35,15 +35,10 @@ const Contact = () => {
     script.defer = true;
     script.onload = () => {
       window.grecaptcha.enterprise.ready(() => {
-        // The normal widget is a fixed 304px wide; use Google's compact size
-        // (164px) when the form is narrower than that, e.g. on phones.
-        const container = document.getElementById('recaptcha-container');
-        const size = container?.parentElement?.clientWidth < 304 ? 'compact' : 'normal';
         widgetIdRef.current = window.grecaptcha.enterprise.render(
           'recaptcha-container',
           {
             sitekey: siteKey,
-            size,
             callback: (token) => {
               setRecaptchaToken(token);
             },
@@ -233,7 +228,9 @@ const Contact = () => {
 
           {/* Enterprise checkbox */}
           <div className='flex justify-center'>
-            <div id='recaptcha-container'></div>
+            {/* The widget is a fixed 304px wide; below 390px the card is narrower,
+                so scale it down visually (it stays fully clickable). */}
+            <div id='recaptcha-container' className='max-[389px]:scale-[0.77] max-[389px]:origin-center'></div>
           </div>
 
           <button
