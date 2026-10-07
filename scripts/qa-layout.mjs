@@ -25,6 +25,7 @@ const LAUNCHER = 'button[aria-label="Ask AI About Bernard"]';
 const LAUNCHER_PILL_MIN = 1580; // launcher is icon-only below this width
 const LAUNCHER_SHOT_WIDTHS = [320, 390, 768, 1280, 1920];
 const CHAT_PANEL_SHOT_WIDTHS = [320, 360, 390];
+const CONTACT_SHOT_WIDTHS = [320, 360, 390, 768];
 // Gap between two boxes (0 if they overlap).
 const boxGap = (a, b) => Math.max(0, a.left - b.right, b.left - a.right, a.top - b.bottom, b.top - a.bottom);
 const overlaps = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
@@ -391,6 +392,57 @@ async function runWidth(width) {
     const closed = await p.evaluate(() => ![...document.querySelectorAll('h3')].some((e) => e.textContent.includes("Bernard's Agent")));
     check(width, closed, 'chat close button closes panel', 'panel still open');
     say(`[${width}] chat panel ${JSON.stringify(panel.panel)} close ${JSON.stringify(panel.close)} send ${JSON.stringify(panel.send)} closed after click: ${closed}`);
+    await p.close();
+  }
+
+  // Contact form: placeholder size equal on all three fields and fitting the field,
+  // typed text kept at 16px (iOS zooms inputs below 16px), reCAPTCHA inside the card.
+  {
+    const p = await openPage(width);
+    await p.evaluate(() => document.getElementById('contact').scrollIntoView({ behavior: 'instant' }));
+    // Wait for the card's slide-in transform to finish and the reCAPTCHA iframe to load.
+    await p
+      .waitForFunction(() => {
+        const card = document.querySelector('#root form').closest('.rounded-2xl');
+        const t = getComputedStyle(card).transform;
+        return (t === 'none' || t === 'matrix(1, 0, 0, 1, 0, 0)') && document.querySelector('#recaptcha-container iframe');
+      }, null, { timeout: 15000 })
+      .catch(() => {});
+    await p.waitForTimeout(500);
+    const c = await p.evaluate(() => {
+      const box = (e) => (({ left, right, top, bottom, width, height }) => ({ left, right, top, bottom, width, height }))(e.getBoundingClientRect());
+      const form = document.querySelector('#root form');
+      const card = form.closest('.rounded-2xl');
+      const ctx = document.createElement('canvas').getContext('2d');
+      const fields = [...form.querySelectorAll('input[placeholder], textarea[placeholder]')].map((el) => {
+        const ph = getComputedStyle(el, '::placeholder');
+        const cs = getComputedStyle(el);
+        ctx.font = `${ph.fontWeight} ${ph.fontSize} ${ph.fontFamily}`;
+        return {
+          name: el.name, tag: el.tagName.toLowerCase(),
+          placeholderSize: ph.fontSize, textSize: cs.fontSize,
+          need: ctx.measureText(el.placeholder).width,
+          room: el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+        };
+      });
+      const iframe = document.querySelector('#recaptcha-container iframe');
+      return { fields, card: box(card), recaptcha: iframe ? box(iframe) : null, vw: window.innerWidth };
+    });
+    const sizes = [...new Set(c.fields.map((f) => f.placeholderSize))];
+    check(width, c.fields.length === 3 && sizes.length === 1, 'contact placeholder size equal on 3 fields', JSON.stringify(c.fields));
+    const clipped = c.fields.filter((f) => f.tag === 'input' && f.need > f.room);
+    check(width, clipped.length === 0, 'contact placeholders fit their inputs', JSON.stringify(clipped));
+    check(width, c.fields.every((f) => parseFloat(f.textSize) >= 16), 'contact typed text >= 16px', JSON.stringify(c.fields.map((f) => f.textSize)));
+    const rc = c.recaptcha;
+    const rcOk = rc && rc.left >= c.card.left && rc.right <= c.card.right && rc.left >= 0 && rc.right <= c.vw;
+    check(width, rcOk, 'reCAPTCHA loaded and inside contact card', JSON.stringify({ recaptcha: rc, card: c.card }));
+    say(`[${width}] contact placeholders ${sizes.join('/')} (${c.fields.map((f) => `${f.name} ${Math.round(f.need)}/${Math.round(f.room)}px`).join(', ')}) | reCAPTCHA ${rc ? `${rc.width}x${rc.height} at ${Math.round(rc.left)}-${Math.round(rc.right)}` : 'NOT LOADED'} in card ${Math.round(c.card.left)}-${Math.round(c.card.right)}`);
+    if (CONTACT_SHOT_WIDTHS.includes(width)) {
+      await p.locator('#root form').evaluate((f) => f.closest('.rounded-2xl').scrollIntoView({ block: 'start', behavior: 'instant' }));
+      await p.waitForTimeout(300);
+      const card = p.locator('#root form >> xpath=ancestor::div[contains(@class,"rounded-2xl")][1]');
+      await card.screenshot({ path: `${OUT}/contact-${width}.png` });
+    }
     await p.close();
   }
 

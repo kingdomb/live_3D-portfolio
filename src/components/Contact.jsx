@@ -35,10 +35,15 @@ const Contact = () => {
     script.defer = true;
     script.onload = () => {
       window.grecaptcha.enterprise.ready(() => {
+        // The normal widget is a fixed 304px wide; use Google's compact size
+        // (164px) when the form is narrower than that, e.g. on phones.
+        const container = document.getElementById('recaptcha-container');
+        const size = container?.parentElement?.clientWidth < 304 ? 'compact' : 'normal';
         widgetIdRef.current = window.grecaptcha.enterprise.render(
           'recaptcha-container',
           {
             sitekey: siteKey,
+            size,
             callback: (token) => {
               setRecaptchaToken(token);
             },
@@ -140,7 +145,7 @@ const Contact = () => {
     <div className='xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden'>
       <motion.div
         variants={slideIn('left', 'tween', 0.2, 1)}
-        className={`flex-[0.75] bg-black-100 p-8 rounded-2xl ${
+        className={`flex-[0.75] bg-black-100 p-4 sm:p-8 rounded-2xl ${
           flash ? 'bg-red-500' : ''
         }`}
       >
@@ -186,7 +191,7 @@ const Contact = () => {
               value={form.name}
               onChange={handleChange}
               placeholder='What do you like to be called?'
-              className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+              className='bg-tertiary py-4 px-3 sm:px-6 placeholder:text-secondary placeholder:text-[11px] xs:placeholder:text-[13px] sm:placeholder:text-base text-white rounded-lg outline-none border-none font-medium'
             />
             {errors.name && (
               <span className='text-red-500 text-xs mt-1'>* Required</span>
@@ -203,7 +208,7 @@ const Contact = () => {
               value={form.email}
               onChange={handleChange}
               placeholder='Which email do you check the most?'
-              className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+              className='bg-tertiary py-4 px-3 sm:px-6 placeholder:text-secondary placeholder:text-[11px] xs:placeholder:text-[13px] sm:placeholder:text-base text-white rounded-lg outline-none border-none font-medium'
             />
             {errors.email && (
               <span className='text-red-500 text-xs mt-1'>* Required</span>
@@ -219,7 +224,7 @@ const Contact = () => {
               value={form.message}
               onChange={handleChange}
               placeholder='How can I help you or your team?'
-              className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+              className='bg-tertiary py-4 px-3 sm:px-6 placeholder:text-secondary placeholder:text-[11px] xs:placeholder:text-[13px] sm:placeholder:text-base text-white rounded-lg outline-none border-none font-medium'
             />
             {errors.message && (
               <span className='text-red-500 text-xs mt-1'>* Required</span>
