@@ -26,6 +26,7 @@ const LAUNCHER_PILL_MIN = 1580; // launcher is icon-only below this width
 const LAUNCHER_SHOT_WIDTHS = [320, 390, 768, 1280, 1920];
 const CHAT_PANEL_SHOT_WIDTHS = [320, 360, 390];
 const CONTACT_SHOT_WIDTHS = [320, 360, 390, 768];
+const SCROLLED_NAV_WIDTHS = [360, 768, 1280];
 // Gap between two boxes (0 if they overlap).
 const boxGap = (a, b) => Math.max(0, a.left - b.right, b.left - a.right, a.top - b.bottom, b.top - a.bottom);
 const overlaps = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
@@ -198,6 +199,7 @@ async function runWidth(width) {
     const mb = m.menu;
     const ok = mb && mb.visible && mb.width > 0 && mb.left >= 0 && mb.right <= m.innerWidth;
     check(width, ok, 'hamburger visible in viewport', JSON.stringify(mb));
+    check(width, mb && mb.width >= 44 && mb.height >= 44, 'hamburger hit area >= 44x44', mb ? `${mb.width}x${mb.height}` : 'missing');
     hamburger = mb ? `${ok ? 'yes' : 'NO'} [${r(mb.left)}-${r(mb.right)}]` : 'NO (missing)';
     check(width, m.links.every((l) => !l.visible), 'desktop links hidden below lg', 'links visible');
   } else {
@@ -247,6 +249,29 @@ async function runWidth(width) {
   });
 
   await page.screenshot({ path: `${OUT}/navbar-${width}.png`, clip: { x: 0, y: 0, width, height: 300 } });
+
+  // Mobile menu: Escape closes it and returns focus to the toggle; so does a press outside.
+  if (width < LG) {
+    const state = () => page.evaluate(() => {
+      const t = document.querySelector('nav button[aria-controls="mobile-menu"]');
+      return { open: document.getElementById('mobile-menu').checkVisibility(), expanded: t.getAttribute('aria-expanded'), focusOnToggle: document.activeElement === t };
+    });
+    await page.click(TOGGLE);
+    await page.waitForTimeout(200);
+    const opened = await state();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    const afterEsc = await state();
+    check(width, opened.open && opened.expanded === 'true', 'menu opens from toggle', JSON.stringify(opened));
+    check(width, !afterEsc.open && afterEsc.expanded === 'false' && afterEsc.focusOnToggle, 'Escape closes menu, focus on toggle', JSON.stringify(afterEsc));
+    await page.click(TOGGLE);
+    await page.waitForTimeout(200);
+    await page.mouse.click(8, Math.round(HEIGHT / 2)); // left edge, mid-height: outside the dropdown and toggle
+    await page.waitForTimeout(300);
+    const afterOutside = await state();
+    check(width, !afterOutside.open && afterOutside.expanded === 'false' && afterOutside.focusOnToggle, 'outside click closes menu, focus on toggle', JSON.stringify(afterOutside));
+    say(`[${width}] menu open ${JSON.stringify(opened)} | after Escape ${JSON.stringify(afterEsc)} | after outside click ${JSON.stringify(afterOutside)}`);
+  }
 
   // Floating chat launcher: size per breakpoint, tap target, spacing from scroll-to-top,
   // margin inside the viewport, and not covering the nav or hero text at the top of the page.
@@ -392,6 +417,29 @@ async function runWidth(width) {
     const closed = await p.evaluate(() => ![...document.querySelectorAll('h3')].some((e) => e.textContent.includes("Bernard's Agent")));
     check(width, closed, 'chat close button closes panel', 'panel still open');
     say(`[${width}] chat panel ${JSON.stringify(panel.panel)} close ${JSON.stringify(panel.close)} send ${JSON.stringify(panel.send)} closed after click: ${closed}`);
+    await p.close();
+  }
+
+  // Scrolled nav: solid background, and brand / links / toggle still clear of each other.
+  if (SCROLLED_NAV_WIDTHS.includes(width)) {
+    const p = await openPage(width);
+    await p.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
+    await p.waitForTimeout(800);
+    const n = await p.evaluate(() => {
+      const box = (e) => (({ left, right, top, bottom }) => ({ left, right, top, bottom }))(e.getBoundingClientRect());
+      const nav = document.querySelector('nav');
+      const vis = (e) => e && e.checkVisibility();
+      const brand = nav.querySelector('a:not([href^="#"])');
+      const links = [...nav.querySelector('ul').querySelectorAll('a')].filter(vis);
+      const toggle = nav.querySelector('button[aria-controls="mobile-menu"]');
+      return { bg: getComputedStyle(nav).backgroundColor, brand: box(brand), links: links.map(box), toggle: vis(toggle) ? box(toggle) : null };
+    });
+    const solid = /^rgb\(/.test(n.bg) || /, 1\)$/.test(n.bg);
+    check(width, solid, 'scrolled nav has solid background', n.bg);
+    const others = [...n.links, ...(n.toggle ? [n.toggle] : [])];
+    check(width, others.every((o) => !overlaps(o, n.brand)), 'scrolled nav: no collisions', JSON.stringify(n));
+    await p.screenshot({ path: `${OUT}/nav-scrolled-${width}.png`, clip: { x: 0, y: 0, width, height: 200 } });
+    say(`[${width}] scrolled nav background ${n.bg}`);
     await p.close();
   }
 
