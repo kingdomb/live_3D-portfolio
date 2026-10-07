@@ -2,8 +2,8 @@
 // and saves screenshots to docs/qa/.
 //
 // Usage:
-//   npm run build && npx vite preview --host 127.0.0.1 --port 4173
-//   node scripts/qa-layout.mjs            # or QA_URL=http://... node scripts/qa-layout.mjs
+//   npm run qa                            # builds, serves, runs this script, stops the server
+//   QA_URL=http://127.0.0.1:4173/live_3D-portfolio/ node scripts/qa-layout.mjs   # against a running server
 //   QA_WIDTHS=500,1100 QA_OUT=/tmp/qa node scripts/qa-layout.mjs   # extra between-breakpoint sweep
 //
 // Exits non-zero if any assertion fails.
@@ -27,7 +27,13 @@ const rows = [];
 const log = [];
 const say = (line) => { console.log(line); log.push(line); };
 
+// results: check label -> Map(width -> boolean). Printed as the PASS/FAIL summary table.
+const results = new Map();
 const check = (width, ok, label, detail) => {
+  ok = Boolean(ok);
+  if (!results.has(label)) results.set(label, new Map());
+  const prev = results.get(label).get(width);
+  results.get(label).set(width, prev === undefined ? ok : prev && ok);
   if (!ok) failures.push(`[${width}] ${label}: ${detail}`);
   return ok;
 };
@@ -101,7 +107,7 @@ for (const width of WIDTHS) {
 
   // 1. No horizontal overflow.
   const overflow = m.scrollWidth > m.innerWidth;
-  check(width, !overflow, 'overflow', `scrollWidth ${m.scrollWidth} > innerWidth ${m.innerWidth}`);
+  check(width, !overflow, 'no horizontal overflow', `scrollWidth ${m.scrollWidth} > innerWidth ${m.innerWidth}`);
 
   // 2 / 3. Hamburger below lg, inline links from lg.
   let hamburger = 'n/a';
@@ -109,7 +115,7 @@ for (const width of WIDTHS) {
   if (width < LG) {
     const mb = m.menu;
     const ok = mb && mb.visible && mb.width > 0 && mb.left >= 0 && mb.right <= m.innerWidth;
-    check(width, ok, 'hamburger', JSON.stringify(mb));
+    check(width, ok, 'hamburger visible in viewport', JSON.stringify(mb));
     hamburger = mb ? `${ok ? 'yes' : 'NO'} [${r(mb.left)}-${r(mb.right)}]` : 'NO (missing)';
     check(width, m.links.every((l) => !l.visible), 'desktop links hidden below lg', 'links visible');
   } else {
@@ -117,7 +123,7 @@ for (const width of WIDTHS) {
       (l) => !l.visible || l.left < 0 || l.right > m.innerWidth ||
         !(l.left >= m.brand.right || l.right <= m.brand.left || l.top >= m.brand.bottom || l.bottom <= m.brand.top)
     );
-    check(width, m.links.length === 5 && bad.length === 0, 'nav links', JSON.stringify(bad));
+    check(width, m.links.length === 5 && bad.length === 0, '5 nav links visible, no overlap', JSON.stringify(bad));
     linksVisible = `${m.links.length - bad.length}/5, gap to brand ${r(m.links[0].left - m.brand.right)}px`;
     check(width, !m.menu || !m.menu.visible, 'hamburger hidden from lg', 'hamburger visible');
   }
@@ -125,27 +131,27 @@ for (const width of WIDTHS) {
   // 4. Logo keeps its natural ratio and matches the text block height.
   const logoRatio = m.logo.width / m.logo.height;
   check(width, Math.abs(logoRatio / m.logo.naturalRatio - 1) <= 0.02, 'logo ratio', `${logoRatio} vs natural ${m.logo.naturalRatio}`);
-  check(width, Math.abs(m.logo.height - m.textBlock.height) <= 2, 'logo height', `logo ${m.logo.height} vs text ${m.textBlock.height}`);
-  check(width, m.textBlock.left - m.logo.right >= 8, 'logo/text gap', `${m.textBlock.left - m.logo.right}px`);
+  check(width, Math.abs(m.logo.height - m.textBlock.height) <= 2, 'logo height = text height', `logo ${m.logo.height} vs text ${m.textBlock.height}`);
+  check(width, m.textBlock.left - m.logo.right >= 8, 'logo/text gap >= 8px', `${m.textBlock.left - m.logo.right}px`);
 
   // 5. Brand text: no clipping, tagline breaks only at the pipe.
-  check(width, m.name.text === 'Bernard' && !m.name.clipped, 'name', JSON.stringify(m.name));
-  check(width, !m.tagline.clipped, 'tagline clipped', m.tagline.text);
+  check(width, m.name.text === 'Bernard' && !m.name.clipped, 'name not clipped', JSON.stringify(m.name));
+  check(width, !m.tagline.clipped, 'tagline not clipped', m.tagline.text);
   let taglineLayout;
   if (m.tagline.segments.length) {
     const [a, b] = m.tagline.segments;
     const sameLine = Math.abs(a.box.top - b.box.top) < 1;
-    check(width, a.lines === 1 && b.lines === 1, 'tagline mid-phrase wrap', JSON.stringify(m.tagline.segments));
-    check(width, !a.pipeVisible, 'leading pipe visible', 'first segment pipe not clipped');
+    check(width, a.lines === 1 && b.lines === 1, 'tagline breaks only at pipe', JSON.stringify(m.tagline.segments));
+    check(width, !a.pipeVisible, 'no leading pipe', 'first segment pipe not clipped');
     check(width, b.pipeVisible === sameLine, 'pipe placement', `sameLine=${sameLine} pipeVisible=${b.pipeVisible}`);
     taglineLayout = sameLine ? '1 line' : '2 lines (at pipe)';
   } else {
-    check(width, m.tagline.singleLine, 'short tagline wraps', m.tagline.text);
+    check(width, m.tagline.singleLine, 'short tagline one line', m.tagline.text);
     taglineLayout = 'short, 1 line';
   }
 
   // 6. Nav height vs. hero heading.
-  check(width, m.heroTop >= m.nav.bottom, 'nav covers hero', `nav bottom ${m.nav.bottom} > h1 top ${m.heroTop}`);
+  check(width, m.heroTop >= m.nav.bottom, 'nav clear of hero h1', `nav bottom ${m.nav.bottom} > h1 top ${m.heroTop}`);
 
   rows.push({
     width,
@@ -189,7 +195,10 @@ for (const width of WIDTHS) {
   // Scroll-to-top button and the floating chat button, on one phone and one desktop width.
   if (TOP_BUTTON_WIDTHS.includes(width)) {
     await page.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
-    await page.waitForTimeout(800);
+    // The button fades in over 300ms; wait for the fade to finish (fails below if it never does).
+    await page
+      .waitForFunction(() => getComputedStyle(document.querySelector('button[aria-label="Scroll to Top"]')).opacity === '1', null, { timeout: 3000 })
+      .catch(() => {});
     const fab = await page.evaluate(() => {
       const box = (e) => (e ? (({ left, right, top, bottom }) => ({ left, right, top, bottom }))(e.getBoundingClientRect()) : null);
       const top = document.querySelector('button[aria-label="Scroll to Top"]');
@@ -200,7 +209,7 @@ for (const width of WIDTHS) {
     const overlap = fab.chat && !(fab.top.bottom <= fab.chat.top || fab.top.top >= fab.chat.bottom || fab.top.right <= fab.chat.left || fab.top.left >= fab.chat.right);
     check(width, fab.top.opacity === '1' && inView(fab.top), 'scroll-to-top visible', JSON.stringify(fab.top));
     check(width, fab.chat && fab.chat.visible && inView(fab.chat), 'chat button visible', JSON.stringify(fab.chat));
-    check(width, !overlap, 'scroll-to-top overlaps chat button', JSON.stringify(fab));
+    check(width, !overlap, 'scroll-to-top clear of chat button', JSON.stringify(fab));
     await page.click('button[aria-label="Scroll to Top"]');
     await page.waitForTimeout(2500);
     const scrollY = await page.evaluate(() => window.scrollY);
@@ -216,6 +225,15 @@ say('');
 say('width | nav h | h1 top | hamburger [left-right] | links | logo | tagline | overflow');
 for (const row of rows) {
   say(`${row.width} | ${row.navHeight} | ${row.heroTop} | ${row.hamburger} | ${row.links} | ${row.logo} | ${row.tagline} | ${row.overflow}`);
+}
+say('');
+say('SUMMARY (PASS/FAIL per check per width; - = not applicable at that width)');
+const labelWidth = Math.max(...[...results.keys()].map((l) => l.length), 5);
+say(`${'check'.padEnd(labelWidth)} | ${WIDTHS.map((w) => String(w).padStart(4)).join(' | ')}`);
+say(`${'-'.repeat(labelWidth)}-|-${WIDTHS.map(() => '----').join('-|-')}`);
+for (const [label, byWidth] of results) {
+  const cells = WIDTHS.map((w) => (byWidth.has(w) ? (byWidth.get(w) ? 'PASS' : 'FAIL') : '   -'));
+  say(`${label.padEnd(labelWidth)} | ${cells.join(' | ')}`);
 }
 say('');
 say(failures.length ? `FAILURES (${failures.length}):\n${failures.join('\n')}` : 'ALL ASSERTIONS PASSED');

@@ -15,8 +15,12 @@
 - Do not use `whitespace-nowrap` on text that sits beside a control that must stay visible.
 - Do not use `&nbsp;` for layout spacing; use gap/margin.
 - Any logo or image that must scale with adjacent text keeps its aspect ratio (`object-contain`, aspect-ratio or `h-auto`), never both width and height fixed to unrelated values.
+- Overlays (menus, modals, chat panels) must close on Escape and on a click outside, and return focus to the control that opened them.
+- Every tappable control has a hit area of at least 44x44px, even if its icon is smaller.
+- Floating buttons must not overlap each other or cover content at any width.
 
 ## Verification protocol (required before saying a layout change works)
+- `npm run qa` must pass before you report any layout, style, or responsive change as done. Paste its summary table in your report.
 1. Never trust a browser tool's default width. Use Playwright with explicit viewports (`scripts/qa-layout.mjs`) at 320, 360, 390, 430, 640, 768, 900, 940, 1023, 1024, 1180, 1280, 1536, 1920.
 2. Assert numbers (no horizontal overflow; required controls inside the viewport; no overlaps; logo ratio) and print them.
 3. Screenshot each width and actually look at the images. Describe what you see.
