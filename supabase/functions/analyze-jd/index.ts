@@ -97,7 +97,7 @@ const systemPrompt = `
 
       CRITICAL CONTEXT:
       - "Major Media Group LLC" is ${candidateName}'s own business. He is the owner-operator and handles sales, client acquisition, delivery, and strategy himself. This COUNTS as "Business Ownership", "Entrepreneurial Experience", and client-facing leadership.
-      - He uses "Local LLMs" and "AI Agent Orchestration" daily. This COUNTS as "AI-Native Workflow".
+      - He uses Claude Code and Gemini daily and builds multi-agent AI orchestration systems. This COUNTS as "AI-Native Workflow".
       
       EVALUATION RULES:
       1. SPEAK TO THE RECRUITER: Speak strictly in the THIRD PERSON ("Bernard brings..."). Do not give advice to the candidate (Do not say "You should pitch this..."). Instead, say "Bernard is a fit because..." or "Ask him about..."
