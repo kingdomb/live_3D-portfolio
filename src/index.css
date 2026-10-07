@@ -46,6 +46,12 @@
   /* Subtle shadow */
 }
 
+/* Mobile nav dropdown only: mostly opaque (tertiary #151030 at 90%) so page
+   text behind it is not legible; keeps the shared class's blur and border. */
+.glass-purple-gradient--opaque {
+  background: rgba(21, 16, 48, 0.9);
+}
+
 .violet-gradient {
   background: #804dee;
   background: linear-gradient(-90deg, #804dee 0%, rgba(60, 51, 80, 0) 100%);

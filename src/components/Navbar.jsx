@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { styles } from '../styles';
 import { navLinks } from '../constants';
@@ -31,6 +31,38 @@ const Navbar = () => {
   const [active, setActive] = useState('');
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const toggleRef = useRef(null);
+  const menuRef = useRef(null);
+
+  // While the mobile menu is open, Escape or a press outside the menu and its
+  // toggle closes it and returns focus to the toggle.
+  useEffect(() => {
+    if (!toggle) return undefined;
+    const close = () => {
+      setToggle(false);
+      toggleRef.current?.focus({ preventScroll: true });
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    const onPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target) || toggleRef.current?.contains(e.target)) return;
+      setToggle(false);
+      // The press's own mousedown moves focus after this handler, so return focus
+      // to the toggle once that settles, unless the press focused something else.
+      setTimeout(() => {
+        if (!document.activeElement || document.activeElement === document.body) {
+          toggleRef.current?.focus({ preventScroll: true });
+        }
+      }, 0);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [toggle]);
 
   useEffect(() => {
     // const handleScroll = () => {
@@ -145,18 +177,26 @@ const Navbar = () => {
 
         {/* Menu Toggle Button for Small Screens */}
         <div className='lg:hidden flex shrink-0 justify-end items-center'>
-          <img
-            src={toggle ? close : menu}
-            alt='menu'
-            className='w-[28px] h-[28px] object-contain'
+          {/* 28px icon, 44x44px hit area (p-2); -m-2 keeps the icon where it was */}
+          <button
+            type='button'
+            ref={toggleRef}
+            className='p-2 -m-2'
+            aria-label={toggle ? 'Close menu' : 'Open menu'}
+            aria-expanded={toggle}
+            aria-controls='mobile-menu'
             onClick={() => setToggle(!toggle)}
-          />
+          >
+            <img src={toggle ? close : menu} alt='' className='block w-[28px] h-[28px] object-contain' />
+          </button>
 
           {/* Dropdown menu (visible when toggle is true and on small screens) */}
           <div
+            id='mobile-menu'
+            ref={menuRef}
             className={`${
               !toggle ? 'hidden' : 'flex'
-            } p-6 glass-purple-gradient absolute top-full right-0 mx-4 my-2 min-w-[140px] z-10 rounded-xl`}
+            } p-6 glass-purple-gradient glass-purple-gradient--opaque absolute top-full right-0 mx-4 my-2 min-w-[140px] z-10 rounded-xl`}
           >
             <ul className='list-none flex justify-end items-start flex-1 flex-col gap-4'>
               {navLinks.map((nav) => (
@@ -166,7 +206,7 @@ const Navbar = () => {
                     active === nav.title ? 'text-white' : 'text-secondary'
                   }`}
                   onClick={() => {
-                    setToggle(!toggle);
+                    setToggle(false);
                     setActive(nav.title);
                   }}
                 >

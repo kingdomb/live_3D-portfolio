@@ -20,6 +20,7 @@ const LG = 1024;
 const MENU_WIDTHS = [360, 390];
 const TOP_BUTTON_WIDTHS = [390, 1280];
 const OUT = process.env.QA_OUT || 'docs/qa';
+const TOGGLE = 'nav button[aria-controls="mobile-menu"]';
 // Every route in src/App.jsx (relative to the Vite base path).
 const ROUTES = [
   { name: '/', path: '' },
@@ -137,7 +138,7 @@ const measure = () => {
     };
   });
 
-  const menu = nav.querySelector('img[alt="menu"]');
+  const menu = nav.querySelector('button[aria-controls="mobile-menu"]');
   const desktopLinks = [...nav.querySelector('ul').querySelectorAll('a')];
   const h1 = document.querySelector('h1');
 
@@ -163,6 +164,16 @@ const measure = () => {
 };
 
 for (const width of WIDTHS) {
+  try {
+    await runWidth(width);
+    check(width, true, 'checks ran without crashing', '');
+  } catch (err) {
+    // A crash at one width is reported as a FAIL (with the error) instead of a silent exit.
+    check(width, false, 'checks ran without crashing', err.stack || String(err));
+  }
+}
+
+async function runWidth(width) {
   const page = await openPage(width);
   const m = await page.evaluate(measure);
   const r = (n) => Math.round(n * 10) / 10;
@@ -230,22 +241,49 @@ for (const width of WIDTHS) {
 
   // Mobile menu: open, check the dropdown is fully on screen, click a link.
   if (MENU_WIDTHS.includes(width)) {
-    await page.click('img[alt="menu"]');
+    await page.click(TOGGLE);
     await page.waitForTimeout(400);
     const dd = await page.evaluate(() => {
       const nav = document.querySelector('nav');
-      const panel = nav.querySelector('img[alt="menu"]').nextElementSibling;
+      const panel = document.getElementById('mobile-menu');
       const b = panel.getBoundingClientRect();
       return { visible: panel.checkVisibility(), left: b.left, right: b.right, top: b.top, bottom: b.bottom, navBottom: nav.getBoundingClientRect().bottom };
     });
     const ddOk = dd.visible && dd.left >= 0 && dd.right <= width && dd.top >= 0 && dd.bottom <= HEIGHT;
     check(width, ddOk, 'dropdown on screen', JSON.stringify(dd));
+
+    // Dropdown background: mostly opaque, text contrast >= 4.5:1, and no position:fixed
+    // descendants under an element with backdrop-filter/filter/transform.
+    const look = await page.evaluate(() => {
+      const panel = document.getElementById('mobile-menu');
+      const cs = getComputedStyle(panel);
+      const [r, g, b, a = 1] = cs.backgroundColor.match(/[\d.]+/g).map(Number);
+      const lum = ([R, G, B]) => {
+        const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+        return 0.2126 * f(R) + 0.7152 * f(G) + 0.0722 * f(B);
+      };
+      const ratio = (x, y) => { const [l1, l2] = [lum(x), lum(y)].sort((p, q) => q - p); return (l1 + 0.05) / (l2 + 0.05); };
+      // Worst case: the translucent panel composited over pure white page content.
+      const over = (base) => [r, g, b].map((c, i) => c * a + base[i] * (1 - a));
+      const bgWorst = over([255, 255, 255]);
+      // Link colors in use, plus white (the active-link color) even if no link is active yet.
+      const textColors = [...new Set(['rgb(255, 255, 255)', ...[...panel.querySelectorAll('li')].map((li) => getComputedStyle(li).color)])];
+      const contrasts = textColors.map((c) => ({ color: c, ratio: ratio(c.match(/[\d.]+/g).slice(0, 3).map(Number), bgWorst) }));
+      const hasFilter = (e) => { const c = getComputedStyle(e); return c.backdropFilter !== 'none' || c.filter !== 'none' || c.transform !== 'none'; };
+      const fixedUnderFilter = [...document.querySelectorAll('nav, nav *')].filter(hasFilter)
+        .flatMap((e) => [...e.querySelectorAll('*')].filter((d) => getComputedStyle(d).position === 'fixed').map((d) => d.tagName));
+      return { background: cs.backgroundColor, alpha: a, backdropFilter: cs.backdropFilter, bgWorst: bgWorst.map(Math.round), contrasts, fixedUnderFilter };
+    });
+    check(width, look.alpha >= 0.88 && look.alpha <= 0.92, 'dropdown opacity 88-92%', JSON.stringify(look));
+    check(width, look.contrasts.length > 0 && look.contrasts.every((c) => c.ratio >= 4.5), 'dropdown text contrast >= 4.5', JSON.stringify(look.contrasts));
+    check(width, look.fixedUnderFilter.length === 0, 'no fixed under filter in nav', JSON.stringify(look.fixedUnderFilter));
+    say(`[${width}] dropdown background ${look.background} (alpha ${look.alpha}, backdrop-filter ${look.backdropFilter}); contrast vs worst case ${JSON.stringify(look.bgWorst)}: ${look.contrasts.map((c) => `${c.color} ${c.ratio.toFixed(2)}:1`).join(', ')}`);
     await page.screenshot({ path: `${OUT}/menu-open-${width}.png`, clip: { x: 0, y: 0, width, height: 500 } });
 
-    await page.click('nav img[alt="menu"] + div >> text=Experience');
+    await page.click('#mobile-menu >> text=Experience');
     await page.waitForTimeout(2500);
     const after = await page.evaluate(() => {
-      const panel = document.querySelector('nav img[alt="menu"]').nextElementSibling;
+      const panel = document.getElementById('mobile-menu');
       return { open: panel.checkVisibility(), scrollY: window.scrollY, workTop: document.getElementById('work').getBoundingClientRect().top };
     });
     check(width, !after.open, 'menu closes on link click', JSON.stringify(after));
@@ -292,7 +330,7 @@ for (const width of WIDTHS) {
   }
   if (width < LG) {
     const p = await openPage(width);
-    await p.click('img[alt="menu"]');
+    await p.click(TOGGLE);
     await p.waitForTimeout(300);
     await overflowAudit(p, width, 'menu open');
     await p.close();
