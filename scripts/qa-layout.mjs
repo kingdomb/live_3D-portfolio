@@ -54,7 +54,9 @@ const check = (width, ok, label, detail) => {
 
 async function openPage(width) {
   const page = await browser.newPage({ viewport: { width, height: HEIGHT } });
-  await page.goto(URL, { waitUntil: 'load' });
+  // Not 'load': that waits for every third-party request (reCAPTCHA, fonts, 3D model)
+  // and intermittently exceeded 30s. The selector waits below gate on what is measured.
+  await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForSelector('nav');
   await page.waitForSelector('h1');
   await page.evaluate(() => document.fonts.ready);
@@ -395,7 +397,7 @@ async function runWidth(width) {
   // Whole-page overflow: every route, then the home page with the mobile menu open and with the chat panel open.
   for (const route of ROUTES) {
     const p = await browser.newPage({ viewport: { width, height: HEIGHT } });
-    await p.goto(URL + route.path, { waitUntil: 'load' });
+    await p.goto(URL + route.path, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await p.waitForSelector('#root *');
     await p.evaluate(() => document.fonts.ready);
     await p.waitForTimeout(route.path ? 800 : 1500);
